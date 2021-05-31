@@ -1,0 +1,7 @@
+ d:; cd 'd:\proyectos uni\Proyecto final\Juego'; & 'c:\Users\jdsal\.vscode\extensions\vscjava.vscode-java-debug-0.34.0\scripts\launcher.bat' 'C:\Program Files\Java\jdk-15.0.2\bin\java.exe' '-XX:+ShowCodeDetailsInExceptionMessages' '-Dfile.encoding=UTF-8' '-cp' 'C:\Users\jdsal\AppData\Roaming\Code\User\workspaceStorage\7c6d8c0a336c52dd13bdabdc0aaeb638\redhat.java\jdt_ws\Juego_4c9c0238\bin' 'src.Laucher.Runner' 
+100
+10
+20
+10
+0
+0
