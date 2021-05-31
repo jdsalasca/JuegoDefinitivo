@@ -69,7 +69,7 @@ public class PrincipalCharacter {
     @Override
     public String toString() {
         
-        // return "name " + this.name + "\nlife " + this.life + "\nstrong " + this.strong + "\ndefense " + this.defense + "\nagility " + this.agility + "\nintelect " + this.intelect + "\nwisdom " + this.wisdom;
-        return this.name + "\n" + this.life + "\n" +  this.strong + "\n" +  this.defense + "\n" +  this.agility + "\n" +  this.intelect + "\n" +  this.wisdom;
+        return "name " + this.name + "\nlife " + this.life + "\nstrong " + this.strong + "\ndefense " + this.defense + "\nagility " + this.agility + "\nintelect " + this.intelect + "\nwisdom " + this.wisdom;
+        // return this.name + "\n" + this.life + "\n" +  this.strong + "\n" +  this.defense + "\n" +  this.agility + "\n" +  this.intelect + "\n" +  this.wisdom;
 }
 }

@@ -171,7 +171,7 @@ public class ReadingStory {
     }
     private void processLine(String line){
         Scanner sc = new Scanner(line);
-        sc.useDelimiter("");
+        sc.useDelimiter(" ");
         String category = sc.next().trim().toLowerCase();
         switch (category) {
             case "name":this.newGame.setName(sc.next().trim());               

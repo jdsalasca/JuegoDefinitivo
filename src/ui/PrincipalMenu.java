@@ -42,7 +42,6 @@ public class PrincipalMenu {
         System.out.println(newGame.getName());
         newGame.getName();
         String name = newGame.getName();
-
         if (name.equals("generic") ){
         // System.out.println(probando.getName());
         // System.out.println("Bienvenido al Caballero de la Armadura Oxidada");
