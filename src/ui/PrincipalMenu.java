@@ -61,19 +61,13 @@ public class PrincipalMenu {
         System.out.println("Bienvenido " + newGame.getName());
         System.exit(0);
     }
-
-
-
     public void principalMenu() {
-
         while(!salir){
             System.out.println("probando si cambia el atributo, Hola  " + newGame.getName());
-            
             System.out.println("1. Nueva partida");
             System.out.println("2. Cargar partida");
             System.out.println("3. Configuraciones");
             System.out.println("4.crear personaje");
-
             System.out.println("5.salir");            
 
             try {
@@ -90,23 +84,15 @@ public class PrincipalMenu {
                     // }
                             
                     case 2:
-                    
-                    
-                    
 
                         break;
                     case 3:
 
                         break;
-                    case 4:
-                    createNewGame();   
-
+                    case 4:createNewGame();   
                         break;
-                    case 5:
-                        System.exit(0);
-
+                    case 5:System.exit(0);
                         break;
-                
                     default:
                         System.out.println("solo numeros entre 1 y 4 c:");
                 }
