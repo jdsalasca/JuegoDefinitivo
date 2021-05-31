@@ -16,7 +16,7 @@ public class PrincipalMenu {
     
     ReadingStory cap1 = new ReadingStory("Capitulo1.txt");
     PrincipalCharacter newGame = new PrincipalCharacter();
-    ReadingStory probando = new ReadingStory(newGame);
+    ReadingStory probando = new ReadingStory();
 
     public PrincipalMenu() {
     }
@@ -40,7 +40,6 @@ public class PrincipalMenu {
         probando.setFileName("Lore.txt");
         probando.setNewGame(newGame);
         System.out.println(newGame.getName());
-        
         newGame.getName();
         String name = newGame.getName();
 

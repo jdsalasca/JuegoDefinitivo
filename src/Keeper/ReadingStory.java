@@ -43,7 +43,7 @@ public class ReadingStory {
         this.Story = new ArrayList<Story>();
         this.newGame = new PrincipalCharacter();
     }
-    public ReadingStory (PrincipalCharacter newGame) {
+    public ReadingStory () {
 		this.fileName = fileName;
         this.Story = new ArrayList<Story>();
         this.newGame = newGame;
@@ -172,14 +172,33 @@ public class ReadingStory {
     private void processLine(String line){
         Scanner sc = new Scanner(line);
         sc.useDelimiter("");
-        
-        this.newGame.setName(sc.next().trim());                         
-        this.newGame.setLife(sc.nextInt());
-        this.newGame.setStrong(sc.nextInt());
-        this.newGame.setDefense(sc.nextInt());
-        this.newGame.setAgility(sc.nextInt());
-        this.newGame.setIntelect(sc.nextInt());
-        this.newGame.setWisdom(sc.nextInt());
+        String category = sc.next().trim().toLowerCase();
+        switch (category) {
+            case "name":this.newGame.setName(sc.next().trim());               
+            break;
+            case "life":this.newGame.setLife(Integer.parseInt(sc.next().trim()));
+            break;
+            case "strong":this.newGame.setStrong(Integer.parseInt(sc.next().trim())); 
+            break;
+            case "defense":this.newGame.setDefense(Integer.parseInt(sc.next().trim()));
+            break;
+            case "agility":this.newGame.setAgility(Integer.parseInt(sc.next().trim()));                    
+            break;
+            case "intelect":this.newGame.setIntelect(Integer.parseInt(sc.next().trim()));                    
+            break;
+            case "wisdom":this.newGame.setWisdom(Integer.parseInt(sc.next().trim()));                    
+            break;
+            default:System.out.println("error al cargar");
+            break;
+        }
+
+        // this.newGame.setName(sc.next().trim());                         
+        // this.newGame.setLife(sc.nextInt());
+        // this.newGame.setStrong(sc.nextInt());
+        // this.newGame.setDefense(sc.nextInt());
+        // this.newGame.setAgility(sc.nextInt());
+        // this.newGame.setIntelect(sc.nextInt());
+        // this.newGame.setWisdom(sc.nextInt());
 
         // this.newGame.setName(sc.next().trim());                         
         // this.newGame.setLife(Integer.parseInt(sc.next().trim()));
@@ -188,44 +207,6 @@ public class ReadingStory {
         // this.newGame.setAgility(Integer.parseInt(sc.next().trim()));
         // this.newGame.setIntelect(Integer.parseInt(sc.next().trim()));
         // this.newGame.setWisdom(Integer.parseInt(sc.next().trim()));
-
-        // String category = sc.next().trim().toLowerCase();
-        // switch (category) {
-        //     case "name":
-        //     this.newGame.setName(sc.next().trim());
-
-                                                    
-                
-        //         break;
-        //     // case "life":
-            
-        //     // this.newGame.setLife(Integer.parseInt(sc.next().trim()));
-            
-        //     // break;
-        //     // case "strong":
-        //     // this.newGame.setStrong(Integer.parseInt(sc.next().trim())); 
-            
-        //     // break;
-        //     // case "defense":
-        //     // this.newGame.setDefense(Integer.parseInt(sc.next().trim()));
-            
-        //     // break;
-        //     // case "agility":
-        //     // this.newGame.setAgility(Integer.parseInt(sc.next().trim()));                    
-        //     // break;
-        //     // case "intelect":
-        //     // this.newGame.setIntelect(Integer.parseInt(sc.next().trim()));                    
-        //     // break;
-        //     // case "wisdom":
-        //     // this.newGame.setWisdom(Integer.parseInt(sc.next().trim()));                    
-        //     // break;
-        
-        //     default:
-        //     System.out.println("error al cargar");
-        //         break;
-        // }
-
-
 
             // ArrayList objets = sc.next().trim();
             // ArrayList Body = add(sc.next());
