@@ -1,7 +1,7 @@
-Carlos
-100
-10
-20
-10
-0
-0
+name Juan
+life 100
+strong 10
+defense 20
+agility 10
+intelect 0
+wisdom 0

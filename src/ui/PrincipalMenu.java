@@ -37,6 +37,7 @@ public class PrincipalMenu {
 
     }
     public void createNewGame (){
+        probando.loadGame();
         probando.setFileName("Lore.txt");
         probando.setNewGame(newGame);
         System.out.println(newGame.getName());
