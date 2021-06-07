@@ -2,6 +2,8 @@ package src.Events;
 
 import java.util.Scanner;
 
+import src.Players.BattlePanel;
+
 public class GenericEvent {
 
     private int strong;
@@ -10,6 +12,7 @@ public class GenericEvent {
     private int max =6;
     private int a;
     private Scanner sc =  new Scanner(System.in);
+    BattlePanel peleas = new BattlePanel();
 
 
     public GenericEvent() {
@@ -22,11 +25,6 @@ public class GenericEvent {
         
     }
 
-    public void fight(){
-
-        
-
-    }
 
     public void event (){
 
@@ -36,7 +34,9 @@ public class GenericEvent {
         
         switch (a) {
             case 1:
-            System.out.println("uno");           
+            System.out.println("uno");
+            peleas.battlePanel();
+                       
                 
                 break;
             case 2:

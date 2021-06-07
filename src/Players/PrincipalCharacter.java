@@ -11,6 +11,7 @@ public class PrincipalCharacter {
     private int agility;
     private int intelect;
     private int wisdom;
+    private int progress;
     // private ArrayList Inventary;
     // private ArrayList equipedObjects;
     // private ArrayList inventory;
@@ -55,7 +56,15 @@ public class PrincipalCharacter {
         return this.wisdom;
     }
     public void setWisdom(int wisdom) {
+        
         this.wisdom = wisdom;
+    }
+    public int getProgress() {
+        return this.progress;
+    }
+    public void setProgress(int progress) {
+        
+        this.progress = progress;
     }
     public PrincipalCharacter() {
         this.name = "generic";
@@ -65,11 +74,12 @@ public class PrincipalCharacter {
         this.agility = 10;
         this.intelect = 0;
         this.wisdom = 0;
+        this.progress = 0;
     }
     @Override
     public String toString() {
         
-        return "name " + this.name + "\nlife " + this.life + "\nstrong " + this.strong + "\ndefense " + this.defense + "\nagility " + this.agility + "\nintelect " + this.intelect + "\nwisdom " + this.wisdom;
+        return "name " + this.name + "\nlife " + this.life + "\nstrong " + this.strong + "\ndefense " + this.defense + "\nagility " + this.agility + "\nintelect " + this.intelect + "\nwisdom " + this.wisdom + "\nprogress " + this.progress;
         // return this.name + "\n" + this.life + "\n" +  this.strong + "\n" +  this.defense + "\n" +  this.agility + "\n" +  this.intelect + "\n" +  this.wisdom;
 }
 }

@@ -2,7 +2,9 @@ package src.ui;
 
 import java.util.Scanner;
 
+import src.Events.GenericEvent;
 import src.Keeper.ReadingStory;
+
 import src.Players.PrincipalCharacter;
 
 public class PrincipalMenu {
@@ -17,35 +19,61 @@ public class PrincipalMenu {
     ReadingStory cap1 = new ReadingStory("Capitulo1.txt");
     PrincipalCharacter newGame = new PrincipalCharacter();
     ReadingStory probando = new ReadingStory();
+    GenericEvent menu_nivel_2 = new GenericEvent();
 
     public PrincipalMenu() {
     }
     
 
     public void beginStory(){
+
+        inicializeGame();
         cap1.loadStory();
         cap1.Story.size();
         for (int i = 0; i < cap1.Story.size(); i++){
         // System.out.println("hola");
-         
+        // menu_nivel_2.event();
+                 
         System.out.println(cap1.Story.get(i));
         System.out.println("deseas continuar? 1. si 2. salir");
         opcion2 = sc.nextInt();
         if (opcion2 == 2) {System.exit(0);}
   
     }
-
-    }
+}
     public void inicializeGame(){
         probando.setFileName("Lore.txt");
         probando.setNewGame(newGame);
         probando.loadGame();
     }
+    public void loadGame (){
+        
+        //se parece mucho a beginStory pero tiene un anidado nuevo que lo hace depender del archivo guardad para continuar la partida
+        //Este metodo mas adelante tendra que inicializar el cap2, cap3....cap8. 
+        inicializeGame();
+        cap1.loadStory();
+        cap1.Story.size();
+        newGame.getProgress();
+        int a = newGame.getProgress();
+        for (a =newGame.getProgress() ; a< cap1.Story.size(); a++){
+            System.out.println((a*100/cap1.Story.size()) + "% de la Historia");
+            // menu_nivel_2.event();
+            System.out.println(cap1.Story.get(a));
+            System.out.println("deseas continuar? 1. si 2. salir");
+            opcion2 = sc.nextInt();
+            if (opcion2 == 2) {newGame.setProgress(a);probando.writingGames();System.exit(0);}
+        }
+    }
+
+
+    
+
     public void createNewGame (){
 
 
         inicializeGame();
         System.out.println(newGame.getName());
+
         newGame.getName();
         String name = newGame.getName();
         if (name.equals("generic") ){
@@ -87,9 +115,11 @@ public class PrincipalMenu {
                     // } catch (Exception e) {
                     //     System.out.println("no esta funcionando el catch");
                         beginStory();
+
                     // }
                             
                     case 2:
+                    loadGame();
 
                         break;
                     case 3:

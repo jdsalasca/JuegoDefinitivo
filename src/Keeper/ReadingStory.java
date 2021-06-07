@@ -187,6 +187,8 @@ public class ReadingStory {
             break;
             case "wisdom":this.newGame.setWisdom(Integer.parseInt(sc.next().trim()));                    
             break;
+            case "progress":this.newGame.setProgress(Integer.parseInt(sc.next().trim()));                    
+            break;
             default:System.out.println("error al cargar");
             break;
         }
