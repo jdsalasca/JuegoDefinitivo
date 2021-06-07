@@ -1,5 +1,5 @@
-package src.Player;
-import java.util.ArrayList;
+package src.Players;
+// import java.util.ArrayList;
 
 public class PrincipalCharacter {  
     private String name;

@@ -7,7 +7,7 @@ import java.util.ArrayList;
 
 import java.util.Scanner;
 
-import src.Player.PrincipalCharacter;
+import src.Players.PrincipalCharacter;
 
 
 public class LoadFiles {

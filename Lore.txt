@@ -1,5 +1,5 @@
-name Juan
-life 100
+name pedro
+life 64
 strong 10
 defense 20
 agility 10

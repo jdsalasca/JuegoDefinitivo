@@ -3,7 +3,7 @@ package src.ui;
 import java.util.Scanner;
 
 import src.Keeper.ReadingStory;
-import src.Player.PrincipalCharacter;
+import src.Players.PrincipalCharacter;
 
 public class PrincipalMenu {
 
@@ -36,10 +36,15 @@ public class PrincipalMenu {
     }
 
     }
-    public void createNewGame (){
-        probando.loadGame();
+    public void inicializeGame(){
         probando.setFileName("Lore.txt");
         probando.setNewGame(newGame);
+        probando.loadGame();
+    }
+    public void createNewGame (){
+
+
+        inicializeGame();
         System.out.println(newGame.getName());
         newGame.getName();
         String name = newGame.getName();
@@ -54,14 +59,15 @@ public class PrincipalMenu {
         probando.writingGames();
         }
         else  {
-        System.out.println("hola" + newGame.getName());
+        System.out.println();
 
         }       
-        System.out.println("ahora te llamas  " + newGame.getName());
+
         System.out.println("Bienvenido " + newGame.getName());
         System.exit(0);
     }
     public void principalMenu() {
+        inicializeGame();
         while(!salir){
             System.out.println("probando si cambia el atributo, Hola  " + newGame.getName());
             System.out.println("1. Nueva partida");

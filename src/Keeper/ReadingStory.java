@@ -7,8 +7,7 @@ import java.util.ArrayList;
 
 import java.util.Scanner;
 
-
-import src.Player.PrincipalCharacter;
+import src.Players.PrincipalCharacter;
 
 
     // private ReadingStory capitulo1;
@@ -90,7 +89,7 @@ public class ReadingStory {
 
 
        
-    public  void readingRecords() {
+    public void readingRecords() {
 		File inFile = new File(this.fileName);
 		try {
 			Scanner sc = new Scanner(inFile);
