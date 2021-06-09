@@ -14,31 +14,30 @@ import src.Events.GenericEvent;
 
 public class Runner {
     static ReadingStory hiii = new ReadingStory("capitulo1.txt");
-    GenericEvent invocacion =  new GenericEvent();
+    static GenericEvent invocacion =  new GenericEvent();
     static BattlePanel probaaaaando = new BattlePanel();
     static PrincipalMenu prueba = new PrincipalMenu();
+
 
     
 
     public static void main(String[] args)  {
 
         prueba.principalMenu();
+
+        // probaaaaando.battlePanel();
+        
+
+        
+
+
+
         
          
         System.out.println("EL CABALLERO DE LA ARMADURA OXIDADA!");
-        // PrincipalMenu newUser = new PrincipalMenu();
-        
-        
-
-        // newUser.principalMenu();
-        
 
         
    
         }
 
     }
-
-
-
-    

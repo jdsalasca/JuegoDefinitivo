@@ -1,8 +1,8 @@
 name pedro
-life 64
+life 404
 strong 10
 defense 20
 agility 10
 intelect 0
 wisdom 0
-progress 21
+progress 1

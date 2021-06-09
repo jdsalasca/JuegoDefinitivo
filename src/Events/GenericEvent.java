@@ -9,7 +9,7 @@ public class GenericEvent {
     private int strong;
     private int life;
     private int min = 1;
-    private int max =6;
+    private int max =2;
     private int a;
     private Scanner sc =  new Scanner(System.in);
     BattlePanel peleas = new BattlePanel();
@@ -34,8 +34,10 @@ public class GenericEvent {
         
         switch (a) {
             case 1:
-            System.out.println("uno");
+            System.out.println("detras de un arbol te has encontrado con un enemigo");
             peleas.battlePanel();
+            // System.out.println("uno");
+            
                        
                 
                 break;

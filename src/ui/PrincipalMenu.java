@@ -14,12 +14,13 @@ public class PrincipalMenu {
     boolean salir = false;
     int opcion;
     int opcion2;
+   
     
     
     ReadingStory cap1 = new ReadingStory("Capitulo1.txt");
     PrincipalCharacter newGame = new PrincipalCharacter();
     ReadingStory probando = new ReadingStory();
-    GenericEvent menu_nivel_2 = new GenericEvent();
+    static GenericEvent menu_nivel_2 = new GenericEvent();
 
     public PrincipalMenu() {
     }
@@ -30,9 +31,13 @@ public class PrincipalMenu {
         inicializeGame();
         cap1.loadStory();
         cap1.Story.size();
+        newGame.getProgress();;
+        int a = newGame.getProgress();
         for (int i = 0; i < cap1.Story.size(); i++){
         // System.out.println("hola");
-        // menu_nivel_2.event();
+    
+
+        System.out.println((a*100/cap1.Story.size()) + "% de la Historia");
                  
         System.out.println(cap1.Story.get(i));
         System.out.println("deseas continuar? 1. si 2. salir");
@@ -56,6 +61,7 @@ public class PrincipalMenu {
         newGame.getProgress();
         int a = newGame.getProgress();
         for (a =newGame.getProgress() ; a< cap1.Story.size(); a++){
+            menu_nivel_2.event();
             System.out.println((a*100/cap1.Story.size()) + "% de la Historia");
             // menu_nivel_2.event();
             System.out.println(cap1.Story.get(a));
@@ -63,6 +69,29 @@ public class PrincipalMenu {
             opcion2 = sc.nextInt();
             if (opcion2 == 2) {newGame.setProgress(a);probando.writingGames();System.exit(0);}
         }
+    }
+    public void loadGameAfterBattle(){
+        //se parece mucho a LoadGame pero es para que el usuario no pieda el hilo de la historia
+        // lo que hace es retroceder en el proceso un poco
+        inicializeGame();
+        cap1.loadStory();
+        cap1.Story.size();
+        
+        newGame.setProgress(newGame.getProgress()-2);
+        probando.writingGames();
+        newGame.getProgress();
+        
+        int a = newGame.getProgress();
+        for (a =newGame.getProgress() ; a< cap1.Story.size(); a++){
+            menu_nivel_2.event();
+            System.out.println((a*100/cap1.Story.size()) + "% de la Historia");
+            // menu_nivel_2.event();
+            System.out.println(cap1.Story.get(a));
+            System.out.println("deseas continuar? 1. si 2. salir");
+            opcion2 = sc.nextInt();
+            if (opcion2 == 2) {newGame.setProgress(a);probando.writingGames();System.exit(0);}
+        }
+        
     }
 
 
@@ -115,14 +144,17 @@ public class PrincipalMenu {
                     // } catch (Exception e) {
                     //     System.out.println("no esta funcionando el catch");
                         beginStory();
+                        menu_nivel_2.event();
 
                     // }
                             
                     case 2:
+                    
                     loadGame();
 
                         break;
                     case 3:
+                    menu_nivel_2.event();
 
                         break;
                     case 4:createNewGame();   

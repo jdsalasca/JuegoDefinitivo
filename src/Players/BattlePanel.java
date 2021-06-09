@@ -8,13 +8,17 @@ import src.Keeper.ReadingStory;
 import src.ui.PrincipalMenu;
 
 public class BattlePanel {
+    int dmg = 0;
+    int vida_restante_enemigo = 0;
+   
 
     private int strong;
     private int life;
     PrincipalMenu invocacion =  new PrincipalMenu();
-    PrincipalCharacter principal = new PrincipalCharacter();
+    static PrincipalCharacter principal = new PrincipalCharacter();
     ReadingStory probando = new ReadingStory();
     Scanner sc = new Scanner(System.in);
+    
 
 
     public BattlePanel() {
@@ -44,6 +48,14 @@ public class BattlePanel {
            System.out.println("perdiste");
        }
     }
+
+    public void winner(){
+        if (dmg>=100){System.out.println("has derrotado a tu enemigo");}
+        // if (vida_restante_principal<0) {
+        //     System.out.println("perdiste :c ");
+            
+        // }
+    }
   
 
 
@@ -53,18 +65,21 @@ public class BattlePanel {
         int ataqueNPC = randomAttack(strong);
 
         if (ataque<ataqueNPC) {
-            inicializeGame();            
+            inicializeGame();
             int lifePrincipal = principal.getLife();
-            lifePrincipal =  lifePrincipal - (ataqueNPC-ataque);
             System.out.println("te han  causado " + (ataqueNPC-ataque) + " de daño");
+            System.out.println("tu vida restante es " + lifePrincipal);
             principal.setLife(lifePrincipal);
             probando.writingGames();
 
 
         } else if(ataque>ataqueNPC){
+            dmg = dmg + (ataque-ataqueNPC);
+            vida_restante_enemigo=this.life - (ataque-ataqueNPC);
             
             life =  life - (ataque- ataqueNPC);
             System.out.println("has causado " + (ataque- ataqueNPC) + " de daño");
+            System.out.println("Vida restante del enemigo " + vida_restante_enemigo);
         
 
         }else {
@@ -84,11 +99,18 @@ public class BattlePanel {
                 break;
             case 2:
                 System.out.println("lograste escapar");
+                invocacion.loadGame();
 
             
             break;
+            case 0:
+            System.out.println("lograste escapar");
+            invocacion.loadGame();
+
+                break;
         
             default:
+                System.out.println("no reconocido, numero ingresado: " + a);
                 break;
         }
     }
@@ -102,47 +124,54 @@ public class BattlePanel {
     }
 
     public void battlePanel(){
-        inicializeGame();
-        while(life<=0 || principal.getLife()<=0){
-            System.out.println("1.atacar");
-            System.out.println("2.inventario");
-            System.out.println("3.invocar");
-            System.out.println("4.huir");
 
-            try {
-                System.out.println("escribe una de las opciones");
-                var opcion = sc.nextInt();
-                switch (opcion) {
-                    case 1:
-                    attack();
+        
+        
+   
+        
+        
+            while(this.life>0 && principal.getLife()>0){
+                inicializeGame();
+                System.out.println("1.atacar");
+                System.out.println("2.inventario");
+                System.out.println("3.invocar");
+                System.out.println("4.huir");
+
+                try {
+                    System.out.println("escribe una de las opciones");
+                    var opcion = sc.nextInt();
+                    switch (opcion) {
+                        case 1:
+                        attack();
+                            
+                            break;
+                        case 2:
+                        invetory();
                         
                         break;
-                    case 2:
-                    invetory();
-                    
-                    break;
-                    case 3:
-                    invocation();
-                    
-                    break;
-                    case 4:
-                    huir();
-                    
-                    break;
-                
-                    default:
+                        case 3:
+                        invocation();
+                        
                         break;
+                        case 4:
+                        huir();
+                        
+                        
+                        break;
+                    
+                        default:
+                            break;
+                    }
+                } catch (Exception e) {
+                    //TODO: handle exception
                 }
-            } catch (Exception e) {
-                //TODO: handle exception
-            }
         }
 
-        }
+
+        }}
 
     
-    }
-
+    
 
     
 
