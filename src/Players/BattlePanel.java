@@ -50,11 +50,13 @@ public class BattlePanel {
     }
 
     public void winner(){
-        if (dmg>=100){System.out.println("has derrotado a tu enemigo");}
-        // if (vida_restante_principal<0) {
-        //     System.out.println("perdiste :c ");
+        inicializeGame();
+        int lifePrincipal = principal.getLife();
+        if (dmg>=30){System.out.println("has derrotado a tu enemigo"); invocacion.loadGameAfterBattle();}
+        if (lifePrincipal<=0) {
+            System.out.println("perdiste :c ");
             
-        // }
+        }
     }
   
 
@@ -69,7 +71,7 @@ public class BattlePanel {
             int lifePrincipal = principal.getLife();
             System.out.println("te han  causado " + (ataqueNPC-ataque) + " de daño");
             System.out.println("tu vida restante es " + lifePrincipal);
-            principal.setLife(lifePrincipal);
+            principal.setLife(lifePrincipal - (ataqueNPC-ataque));
             probando.writingGames();
 
 
@@ -99,13 +101,13 @@ public class BattlePanel {
                 break;
             case 2:
                 System.out.println("lograste escapar");
-                invocacion.loadGame();
+                invocacion.loadGameAfterBattle();
 
             
             break;
             case 0:
             System.out.println("lograste escapar");
-            invocacion.loadGame();
+            invocacion.loadGameAfterBattle();
 
                 break;
         
@@ -136,6 +138,9 @@ public class BattlePanel {
                 System.out.println("2.inventario");
                 System.out.println("3.invocar");
                 System.out.println("4.huir");
+                winner();
+
+
 
                 try {
                     System.out.println("escribe una de las opciones");

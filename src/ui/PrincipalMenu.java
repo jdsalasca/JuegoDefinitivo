@@ -34,10 +34,10 @@ public class PrincipalMenu {
         newGame.getProgress();;
         int a = newGame.getProgress();
         for (int i = 0; i < cap1.Story.size(); i++){
+            menu_nivel_2.event();
         // System.out.println("hola");
     
-
-        System.out.println((a*100/cap1.Story.size()) + "% de la Historia");
+        System.out.println((i*100/cap1.Story.size()) + "% de la Historia");
                  
         System.out.println(cap1.Story.get(i));
         System.out.println("deseas continuar? 1. si 2. salir");
@@ -144,7 +144,7 @@ public class PrincipalMenu {
                     // } catch (Exception e) {
                     //     System.out.println("no esta funcionando el catch");
                         beginStory();
-                        menu_nivel_2.event();
+                        
 
                     // }
                             
