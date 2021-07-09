@@ -29,9 +29,6 @@ import src.Players.PrincipalCharacter;
 
 public class ReadingStory {
 
-
-
-    
     private String fileName;
     public ArrayList <Story> Story;
     public int a = 0;
@@ -48,15 +45,10 @@ public class ReadingStory {
         this.newGame = newGame;
     }
 
-
-
-
     public ReadingStory(String fileName, ArrayList<Story> Story) {
         this.fileName = fileName;
         this.Story = Story;
-        this.newGame = new PrincipalCharacter();
-        
-        
+        this.newGame = new PrincipalCharacter();               
     }
 
     public String getFileName() {
