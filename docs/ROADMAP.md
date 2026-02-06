@@ -1,10 +1,10 @@
 # Monorepo Plan
 
 ## Fases
-1. foundation: mover backend a `apps/backend` y preparar `apps/frontend`.
-2. backend-api: exponer endpoints REST para juego e importacion.
-3. frontend-react: UX web para importar/jugar/guardar.
-4. desktop-exe: empaquetado con `jpackage`.
+1. done: foundation - backend en `apps/backend` y estructura monorepo.
+2. done: backend-api - endpoints REST para juego e importacion.
+3. done: frontend-react - UX web para importar/jugar/guardar.
+4. done: desktop-exe - empaquetado con `jpackage` y fallback.
 
 ## Definicion de listo
 - Backend tests en verde.
