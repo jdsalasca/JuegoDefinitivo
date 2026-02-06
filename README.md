@@ -31,9 +31,10 @@ npm run dev
 Abrir: `http://localhost:5173`
 
 ## Uso con PDF real
-1. En la UI, pulsa `Importar Libro`.
-2. Usa una ruta como: `file:///C:/Users/<usuario>/Downloads/libro.pdf`
-3. Inicia partida y juega por escenas.
+1. En `1. Preparar partida`, usa `Importar libro` con ruta como `file:///C:/Users/<usuario>/Downloads/libro.pdf`.
+2. Selecciona el libro importado y pulsa `2. Iniciar partida`.
+3. En `3. Jugar`, avanza por escenas con `Dialogar`, `Explorar`, `Resolver reto` o `Usar item`.
+4. Para continuar luego, usa `Cargar sesion` con el `sessionId` (tambien se recuerda automaticamente en el navegador).
 
 ## Release desktop
 - Release publico actual: `v3.1.0`
