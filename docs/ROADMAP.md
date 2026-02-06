@@ -1,13 +1,13 @@
-# Monorepo Plan
+# Roadmap
 
-## Fases
-1. done: foundation - backend en `apps/backend` y estructura monorepo.
-2. done: backend-api - endpoints REST para juego e importacion.
-3. done: frontend-react - UX web para importar/jugar/guardar.
-4. done: desktop-exe - empaquetado con `jpackage` y fallback.
+## Completed
+1. Foundation: monorepo (`apps/backend`, `apps/frontend`, `docs`, `scripts`).
+2. Backend API: sesiones de juego, importacion de libros y acciones por escena.
+3. Frontend React: flujo completo de importacion e interaccion jugable.
+4. Desktop packaging: `jpackage` con fallback portable.
 
-## Definicion de listo
-- Backend tests en verde.
-- Frontend build y tests en verde.
-- CI corriendo en push/PR.
-- Flujo de juego E2E con PDF real.
+## Next Milestones
+1. `v3.2`: persistencia PostgreSQL + migraciones Flyway.
+2. `v3.3`: panel docente y analitica de aprendizaje.
+3. `v3.4`: narracion semantica mejorada y dificultad adaptativa.
+4. `v3.5`: pruebas E2E frontend + pipeline de instalador firmado.

@@ -1,6 +1,6 @@
 # AutoBook Backend API
 
-Backend Spring Boot para convertir libros (`.txt` / `.pdf`) en aventuras jugables.
+Backend Spring Boot que convierte libros (`.txt` / `.pdf`) en aventuras jugables.
 
 ## Ejecutar
 ```bash
@@ -9,7 +9,7 @@ mvn test
 mvn spring-boot:run
 ```
 
-## Endpoints principales
+## API
 - `GET /api/health`
 - `GET /api/books`
 - `POST /api/books/import` body: `{ "path": "file:///C:/.../libro.pdf" }`
@@ -17,6 +17,14 @@ mvn spring-boot:run
 - `GET /api/game/{sessionId}`
 - `POST /api/game/{sessionId}/action` body: `{ "action": "TALK|EXPLORE|CHALLENGE|USE_ITEM", "answerIndex": 1, "itemId": "potion_small" }`
 
+## Arquitectura
+- `domain`: entidades de juego.
+- `engine`: reglas de combate/progreso/retos.
+- `ingest`: importacion y lectura TXT/PDF.
+- `narrative`: construccion de escenas.
+- `service`: orquestacion de sesiones.
+- `api`: controladores y DTOs.
+
 ## Notas
-- CORS habilitado para `http://localhost:5173`.
-- Libros de muestra se copian automaticamente al catalogo.
+- CORS permitido para `http://localhost:5173`.
+- El frontend empaquetado se copia a `src/main/resources/static` solo durante build desktop.

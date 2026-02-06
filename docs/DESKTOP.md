@@ -1,17 +1,17 @@
 # Desktop Packaging
 
-## Requisitos para `.exe`
+## Requisitos
 - JDK con `jpackage`
-- WiX Toolset en PATH (`candle.exe`, `light.exe`)
+- WiX Toolset v3 en PATH (`candle.exe`, `light.exe`) para instalador `.exe`
 
 ## Comando
 ```bash
 powershell -ExecutionPolicy Bypass -File scripts/package-exe.ps1
 ```
 
-## Comportamiento
-- Si WiX esta instalado: genera `exe`.
-- Si WiX no esta instalado: fallback automatico a `app-image`.
+## Resultado
+- Con WiX: genera instalador `.exe` en `dist/`.
+- Sin WiX: fallback automatico a `app-image` portable en `dist/`.
 
-## Ubicacion de salida
-- `dist/`
+## Nota tecnica
+El script crea un input temporal con **solo el jar final** para evitar incluir artefactos de compilacion no deseados.

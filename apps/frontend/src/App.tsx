@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import "./App.css";
 import { importBook, listBooks, loadState, sendAction, startGame } from "./api";
 import type { BookView, GameState } from "./types";
@@ -26,19 +26,19 @@ function App() {
     return Object.entries(state.inventory);
   }, [state]);
 
-  useEffect(() => {
-    refreshBooks().catch(() => {
-      // no-op on initial load
-    });
-  }, []);
-
-  async function refreshBooks() {
+  const refreshBooks = useCallback(async () => {
     const items = await listBooks();
     setBooks(items);
     if (!selectedBookPath && items.length > 0) {
       setSelectedBookPath(items[0].path);
     }
-  }
+  }, [selectedBookPath]);
+
+  useEffect(() => {
+    refreshBooks().catch(() => {
+      // no-op on initial load
+    });
+  }, [refreshBooks]);
 
   async function withRequest(task: () => Promise<void>) {
     setLoading(true);

@@ -1,8 +1,0 @@
-name pedro
-life 1430
-strong 10
-defense 20
-agility 10
-intelect 0
-wisdom 0
-progress -5
