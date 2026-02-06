@@ -37,6 +37,7 @@ public class GameFacadeService {
     private final BookLoaderService loader;
     private final NarrativeBuilder narrativeBuilder;
     private final GameEngineService engine;
+    private final AutoplayService autoplayService;
 
     private final Map<String, SessionState> sessions = new ConcurrentHashMap<>();
 
@@ -46,7 +47,8 @@ public class GameFacadeService {
             BookImportService importer,
             BookLoaderService loader,
             NarrativeBuilder narrativeBuilder,
-            GameEngineService engine
+            GameEngineService engine,
+            AutoplayService autoplayService
     ) {
         this.config = config;
         this.catalog = catalog;
@@ -54,6 +56,7 @@ public class GameFacadeService {
         this.loader = loader;
         this.narrativeBuilder = narrativeBuilder;
         this.engine = engine;
+        this.autoplayService = autoplayService;
     }
 
     public void bootstrapSamples() {
@@ -131,6 +134,43 @@ public class GameFacadeService {
         SessionState updated = state.withMessage(outcome.message());
         sessions.put(sessionId, updated);
         return toResponse(sessionId, updated);
+    }
+
+    public GameStateResponse applyAutoplay(String sessionId, String ageBand, String readingLevel, Integer maxSteps) {
+        SessionState state = requireSession(sessionId);
+        GameSession session = state.session();
+
+        int steps = maxSteps == null ? 3 : Math.max(1, Math.min(15, maxSteps));
+        int executed = 0;
+        String lastMessage = "Modo auto sin movimientos.";
+
+        for (int i = 0; i < steps; i++) {
+            if (session.isCompleted()) {
+                break;
+            }
+            if (session.getCurrentScene() >= state.scenes().size()) {
+                session.setCompleted(true);
+                break;
+            }
+
+            NarrativeScene scene = state.scenes().get(session.getCurrentScene());
+            AutoplayService.PlannedTurn planned = autoplayService.planTurn(session, scene, ageBand, readingLevel);
+            TurnOutcome outcome = engine.apply(session, scene, planned.action(), planned.challengeCorrect(), planned.itemId());
+            if (outcome.consumedTurn()) {
+                engine.moveNextScene(session, state.scenes().size());
+            }
+            executed++;
+            lastMessage = planned.rationale() + " " + outcome.message();
+            state = state.withMessage(lastMessage);
+            sessions.put(sessionId, state);
+        }
+
+        if (executed > 0) {
+            state = state.withMessage(lastMessage + " (auto-steps=" + executed + ")");
+            sessions.put(sessionId, state);
+        }
+
+        return toResponse(sessionId, state);
     }
 
     private PlayerAction parseAction(String value) {

@@ -1,0 +1,130 @@
+name: release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version tag (ej: v3.2.0)"
+        required: true
+        type: string
+
+jobs:
+  build-desktop:
+    runs-on: windows-latest
+    env:
+      APP_NAME: AutoBookQuest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve version
+        id: version
+        shell: pwsh
+        run: |
+          if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+            "value=${{ inputs.version }}" >> $env:GITHUB_OUTPUT
+          } else {
+            "value=${{ github.ref_name }}" >> $env:GITHUB_OUTPUT
+          }
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: apps/frontend/package-lock.json
+
+      - name: Build frontend
+        working-directory: apps/frontend
+        run: |
+          npm ci
+          npm run build
+
+      - name: Sync frontend assets to backend static
+        shell: pwsh
+        run: |
+          Remove-Item -Recurse -Force "apps/backend/src/main/resources/static/*" -ErrorAction SilentlyContinue
+          Copy-Item -Recurse -Force "apps/frontend/dist/*" "apps/backend/src/main/resources/static/"
+
+      - name: Package backend jar
+        working-directory: apps/backend
+        run: mvn -B clean package -DskipTests
+
+      - name: Build desktop app image
+        id: package
+        shell: pwsh
+        run: |
+          $version = "${{ steps.version.outputs.value }}".TrimStart('v')
+          $jar = Get-ChildItem "apps/backend/target/autobook-adventure-*.jar" | Select-Object -First 1
+          if (-not $jar) { throw "Jar no encontrado en apps/backend/target" }
+          New-Item -ItemType Directory -Force -Path ".jpackage-input" | Out-Null
+          Copy-Item $jar.FullName ".jpackage-input/$($jar.Name)" -Force
+          New-Item -ItemType Directory -Force -Path "dist" | Out-Null
+          jpackage `
+            --type app-image `
+            --name "$env:APP_NAME" `
+            --dest "dist" `
+            --input ".jpackage-input" `
+            --main-jar "$($jar.Name)" `
+            --main-class "org.springframework.boot.loader.launch.JarLauncher" `
+            --app-version "$version" `
+            --java-options "-Dserver.port=8080"
+          "app_dir=dist/$env:APP_NAME" >> $env:GITHUB_OUTPUT
+
+      - name: Optional code signing
+        if: ${{ secrets.WINDOWS_CERT_BASE64 != '' && secrets.WINDOWS_CERT_PASSWORD != '' }}
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          [IO.File]::WriteAllBytes("codesign.pfx", [Convert]::FromBase64String("${{ secrets.WINDOWS_CERT_BASE64 }}"))
+          $exe = Get-ChildItem "${{ steps.package.outputs.app_dir }}" -Recurse -Filter "*.exe" | Select-Object -First 1
+          if ($exe) {
+            signtool sign /f codesign.pfx /p "${{ secrets.WINDOWS_CERT_PASSWORD }}" /tr http://timestamp.digicert.com /td sha256 /fd sha256 $exe.FullName
+          }
+
+      - name: Zip desktop distribution
+        id: archive
+        shell: pwsh
+        run: |
+          $zipName = "AutoBookQuest-win64.zip"
+          Compress-Archive -Path "${{ steps.package.outputs.app_dir }}/*" -DestinationPath "dist/$zipName" -Force
+          "zip_path=dist/$zipName" >> $env:GITHUB_OUTPUT
+
+      - name: Create update manifest
+        shell: pwsh
+        run: |
+          $tag = "${{ steps.version.outputs.value }}"
+          $url = "https://github.com/${{ github.repository }}/releases/download/$tag/AutoBookQuest-win64.zip"
+          $manifest = @{
+            version = $tag
+            publishedAt = (Get-Date).ToString("o")
+            channel = "stable"
+            assets = @(
+              @{
+                platform = "win64"
+                url = $url
+              }
+            )
+          } | ConvertTo-Json -Depth 4
+          Set-Content -Path "dist/latest.json" -Value $manifest -Encoding UTF8
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.value }}
+          target_commitish: main
+          generate_release_notes: true
+          files: |
+            ${{ steps.archive.outputs.zip_path }}
+            dist/latest.json
+

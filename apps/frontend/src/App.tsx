@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import "./App.css";
-import { importBook, listBooks, loadState, sendAction, startGame } from "./api";
-import type { BookView, GameState } from "./types";
+import { autoplay, fetchTelemetrySummary, importBook, listBooks, loadState, sendAction, startGame, trackEvent } from "./api";
+import type { BookView, GameState, TelemetrySummary } from "./types";
 
 type ActionKind = "TALK" | "EXPLORE" | "CHALLENGE" | "USE_ITEM";
 
@@ -45,6 +45,11 @@ const ACTIONS: ActionDescriptor[] = [
 ];
 
 const SESSION_KEY = "autobook:lastSessionId";
+const EMPTY_TELEMETRY: TelemetrySummary = {
+  totalEvents: 0,
+  byEvent: {},
+  byStage: {},
+};
 
 function App() {
   const [books, setBooks] = useState<BookView[]>([]);
@@ -57,8 +62,12 @@ function App() {
   const [answerIndex, setAnswerIndex] = useState<number>(1);
   const [selectedItemId, setSelectedItemId] = useState<string>("");
   const [selectedAction, setSelectedAction] = useState<ActionKind>("TALK");
+  const [autoAgeBand, setAutoAgeBand] = useState<string>("9-12");
+  const [autoReadingLevel, setAutoReadingLevel] = useState<string>("intermediate");
+  const [autoSteps, setAutoSteps] = useState<number>(3);
   const [state, setState] = useState<GameState | null>(null);
   const [statusMessage, setStatusMessage] = useState<string>("Listo para iniciar.");
+  const [telemetry, setTelemetry] = useState<TelemetrySummary>(EMPTY_TELEMETRY);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
 
@@ -89,11 +98,23 @@ function App() {
     }
   }, [selectedBookPath]);
 
+  const refreshTelemetry = useCallback(async () => {
+    try {
+      const summary = await fetchTelemetrySummary();
+      setTelemetry(summary);
+    } catch {
+      setTelemetry(EMPTY_TELEMETRY);
+    }
+  }, []);
+
   useEffect(() => {
     refreshBooks().catch(() => {
       setError("No se pudo cargar el catalogo inicial.");
     });
-  }, [refreshBooks]);
+    refreshTelemetry().catch(() => {
+      setTelemetry(EMPTY_TELEMETRY);
+    });
+  }, [refreshBooks, refreshTelemetry]);
 
   useEffect(() => {
     const savedSession = localStorage.getItem(SESSION_KEY);
@@ -102,14 +123,33 @@ function App() {
     }
   }, []);
 
-  async function withRequest(task: () => Promise<void>, successMessage?: string) {
+  async function withRequest(
+    task: () => Promise<void>,
+    options?: {
+      successMessage?: string;
+      eventName?: string;
+      stage?: string;
+      metadata?: Record<string, string>;
+    },
+  ) {
+    const startedAt = Date.now();
     setLoading(true);
     setError("");
     try {
       await task();
-      if (successMessage) {
-        setStatusMessage(successMessage);
+      if (options?.successMessage) {
+        setStatusMessage(options.successMessage);
       }
+      if (options?.eventName) {
+        await trackEvent(
+          (state?.sessionId ?? sessionIdInput) || null,
+          options.eventName,
+          options.stage ?? "unknown",
+          Date.now() - startedAt,
+          options.metadata,
+        );
+      }
+      await refreshTelemetry();
     } catch (err) {
       const message = err instanceof Error ? err.message : "Error inesperado.";
       setError(message);
@@ -152,6 +192,15 @@ function App() {
     setStatusMessage(result.lastMessage);
   }
 
+  async function executeAutoplay() {
+    if (!state) {
+      return;
+    }
+    const result = await autoplay(state.sessionId, autoAgeBand, autoReadingLevel, autoSteps);
+    setState(result);
+    setStatusMessage(result.lastMessage);
+  }
+
   return (
     <main className="app-shell">
       <header className="topbar">
@@ -174,27 +223,31 @@ function App() {
 
           <label>
             Nombre del jugador
-            <input value={playerName} onChange={(e) => setPlayerName(e.target.value)} />
+            <input data-testid="player-name" value={playerName} onChange={(e) => setPlayerName(e.target.value)} />
           </label>
 
           <label>
             Ruta de libro (.txt/.pdf)
-            <input value={importPath} onChange={(e) => setImportPath(e.target.value)} />
+            <input data-testid="import-path" value={importPath} onChange={(e) => setImportPath(e.target.value)} />
           </label>
 
           <div className="row">
             <button
+              data-testid="import-book"
               disabled={loading}
               onClick={() =>
                 withRequest(async () => {
                   await importBook(importPath);
                   await refreshBooks();
-                }, "Libro importado y catalogo actualizado.")
+                }, { successMessage: "Libro importado y catalogo actualizado.", eventName: "book_imported", stage: "setup" })
               }
             >
               Importar libro
             </button>
-            <button disabled={loading} onClick={() => withRequest(refreshBooks, "Catalogo actualizado.")}>
+            <button
+              disabled={loading}
+              onClick={() => withRequest(refreshBooks, { successMessage: "Catalogo actualizado.", eventName: "catalog_refreshed", stage: "setup" })}
+            >
               Refrescar
             </button>
           </div>
@@ -212,6 +265,7 @@ function App() {
 
           <div className="row">
             <button
+              data-testid="start-game"
               disabled={loading || !selectedBookPath}
               onClick={() =>
                 withRequest(async () => {
@@ -219,7 +273,7 @@ function App() {
                   setState(result);
                   persistSession(result.sessionId);
                   setSelectedAction("TALK");
-                }, "Partida iniciada correctamente.")
+                }, { successMessage: "Partida iniciada correctamente.", eventName: "game_started", stage: "setup" })
               }
             >
               2. Iniciar partida
@@ -242,7 +296,7 @@ function App() {
                 const loaded = await loadState(sessionIdInput);
                 setState(loaded);
                 persistSession(sessionIdInput);
-              }, "Sesion cargada.")
+              }, { successMessage: "Sesion cargada.", eventName: "session_loaded", stage: "setup" })
             }
           >
             Cargar sesion
@@ -298,8 +352,54 @@ function App() {
                 </article>
               )}
 
+              <section className="autoplay-panel">
+                <h3>Modo Auto Pedagogico</h3>
+                <div className="auto-grid">
+                  <label>
+                    Edad
+                    <select value={autoAgeBand} onChange={(e) => setAutoAgeBand(e.target.value)}>
+                      <option value="6-8">6-8</option>
+                      <option value="9-12">9-12</option>
+                      <option value="13+">13+</option>
+                    </select>
+                  </label>
+                  <label>
+                    Nivel lector
+                    <select value={autoReadingLevel} onChange={(e) => setAutoReadingLevel(e.target.value)}>
+                      <option value="beginner">Principiante</option>
+                      <option value="intermediate">Intermedio</option>
+                      <option value="advanced">Avanzado</option>
+                    </select>
+                  </label>
+                  <label>
+                    Pasos
+                    <input
+                      type="number"
+                      min={1}
+                      max={15}
+                      value={autoSteps}
+                      onChange={(e) => setAutoSteps(Number(e.target.value))}
+                    />
+                  </label>
+                </div>
+                <button
+                  data-testid="run-autoplay"
+                  className="play-button"
+                  disabled={loading || !state.currentScene || state.completed}
+                  onClick={() =>
+                    withRequest(executeAutoplay, {
+                      eventName: "autoplay_run",
+                      stage: "play",
+                      metadata: { ageBand: autoAgeBand, readingLevel: autoReadingLevel, steps: String(autoSteps) },
+                    })
+                  }
+                >
+                  Ejecutar modo auto
+                </button>
+              </section>
+
               <section className="actions-panel">
-                <h3>Accion recomendada</h3>
+                <h3>Accion manual</h3>
                 <div className="action-grid">
                   {ACTIONS.map((action) => (
                     <button
@@ -317,10 +417,7 @@ function App() {
                 {state.currentScene && activeAction.needsChallenge && (
                   <label>
                     Respuesta del reto
-                    <select
-                      value={answerIndex}
-                      onChange={(e) => setAnswerIndex(Number(e.target.value))}
-                    >
+                    <select value={answerIndex} onChange={(e) => setAnswerIndex(Number(e.target.value))}>
                       {state.currentScene.challenge.options.map((option, idx) => (
                         <option key={option + idx} value={idx + 1}>
                           {idx + 1}. {option}
@@ -333,10 +430,7 @@ function App() {
                 {activeAction.needsItem && (
                   <label>
                     Item a usar
-                    <select
-                      value={selectedItemId}
-                      onChange={(e) => setSelectedItemId(e.target.value)}
-                    >
+                    <select value={selectedItemId} onChange={(e) => setSelectedItemId(e.target.value)}>
                       <option value="">Seleccionar automaticamente</option>
                       {inventoryEntries.map(([id, qty]) => (
                         <option key={id} value={id}>
@@ -348,9 +442,16 @@ function App() {
                 )}
 
                 <button
+                  data-testid="execute-action"
                   className="play-button"
                   disabled={loading || !canSendAction()}
-                  onClick={() => withRequest(executeSelectedAction)}
+                  onClick={() =>
+                    withRequest(executeSelectedAction, {
+                      eventName: "action_executed",
+                      stage: "play",
+                      metadata: { action: activeAction.key },
+                    })
+                  }
                 >
                   Ejecutar: {activeAction.label}
                 </button>
@@ -380,6 +481,22 @@ function App() {
                         {quest.title}
                       </li>
                     ))}
+                  </ul>
+                </article>
+
+                <article className="mini-panel">
+                  <h4>Telemetria UX</h4>
+                  <p>
+                    Eventos capturados: <strong data-testid="telemetry-total">{telemetry.totalEvents}</strong>
+                  </p>
+                  <ul>
+                    {Object.entries(telemetry.byEvent)
+                      .slice(0, 4)
+                      .map(([name, value]) => (
+                        <li key={name}>
+                          {name}: {value}
+                        </li>
+                      ))}
                   </ul>
                 </article>
               </section>

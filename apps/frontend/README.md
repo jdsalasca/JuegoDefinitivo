@@ -26,7 +26,17 @@ npm run build
    - `Explorar`
    - `Resolver reto` (seleccion de respuesta)
    - `Usar item` (seleccion de inventario)
+4. `Modo Auto Pedagogico`: ejecuta pasos automáticos configurando edad, nivel lector y pasos.
 
 ## Estado de sesion
 - El frontend guarda el ultimo `sessionId` en `localStorage` con la clave `autobook:lastSessionId`.
 - Al recargar la pagina, ese `sessionId` aparece automaticamente en el campo de reanudacion.
+
+## Telemetria UX
+- El frontend reporta eventos de setup/juego al backend (`/api/telemetry/events`).
+- Resumen visible en UI (`Telemetria UX`) y disponible por API (`/api/telemetry/summary`).
+
+## E2E
+```bash
+npm run test:e2e
+```

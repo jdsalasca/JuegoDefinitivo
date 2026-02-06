@@ -1,4 +1,4 @@
-import type { BookView, GameState } from "./types";
+import type { BookView, GameState, TelemetrySummary } from "./types";
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "http://localhost:8080/api";
 
@@ -21,6 +21,10 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     throw new Error(message);
   }
 
+  const contentType = response.headers.get("content-type") ?? "";
+  if (!contentType.includes("application/json")) {
+    return undefined as T;
+  }
   return (await response.json()) as T;
 }
 
@@ -56,4 +60,33 @@ export async function sendAction(
 
 export async function loadState(sessionId: string): Promise<GameState> {
   return request<GameState>(`/game/${sessionId}`);
+}
+
+export async function autoplay(
+  sessionId: string,
+  ageBand: string,
+  readingLevel: string,
+  maxSteps: number,
+): Promise<GameState> {
+  return request<GameState>(`/game/${sessionId}/autoplay`, {
+    method: "POST",
+    body: JSON.stringify({ ageBand, readingLevel, maxSteps }),
+  });
+}
+
+export async function trackEvent(
+  sessionId: string | null,
+  eventName: string,
+  stage: string,
+  elapsedMs: number,
+  metadata: Record<string, string> = {},
+): Promise<void> {
+  await request<void>("/telemetry/events", {
+    method: "POST",
+    body: JSON.stringify({ sessionId, eventName, stage, elapsedMs, metadata }),
+  });
+}
+
+export async function fetchTelemetrySummary(): Promise<TelemetrySummary> {
+  return request<TelemetrySummary>("/telemetry/summary");
 }
