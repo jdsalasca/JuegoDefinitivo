@@ -1,22 +1,26 @@
 # AutoBook Frontend
 
-Interfaz React + TypeScript para jugar historias del backend.
+Frontend React + TypeScript para jugar historias del backend.
 
 ## Setup
 ```bash
 cd apps/frontend
-cp .env.example .env
+copy .env.example .env
 npm install
 npm run dev
 ```
 
-## Scripts
-- `npm run dev`
-- `npm run build`
-- `npm run preview`
+## Build
+```bash
+npm run build
+```
 
-## Flujo
-1. Importa libro por ruta (incluye `file:///...pdf`).
-2. Inicia partida seleccionando libro.
-3. Ejecuta acciones por escena (`TALK`, `EXPLORE`, `CHALLENGE`, `USE_ITEM`).
-4. Continua con `sessionId`.
+## Variables
+- `VITE_API_BASE` (default: `http://localhost:8080/api`)
+
+## Flujo UX
+1. Importar libro (`file:///...pdf` o ruta local).
+2. Seleccionar libro y jugador.
+3. Iniciar partida.
+4. Ejecutar acciones por escena (`TALK`, `EXPLORE`, `CHALLENGE`, `USE_ITEM`).
+5. Continuar con `sessionId`.

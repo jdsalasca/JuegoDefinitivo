@@ -1,0 +1,5 @@
+# Generated frontend bundle for packaged desktop builds.
+# Do not commit generated files; packaging script copies them temporarily.
+*
+!.gitkeep
+!.gitignore

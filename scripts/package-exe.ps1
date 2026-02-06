@@ -36,6 +36,12 @@ if (!(Test-Path $jarPath)) {
 Write-Host "[4/5] Running jpackage"
 $jpackageOut = Join-Path $root "dist"
 New-Item -ItemType Directory -Force -Path $jpackageOut | Out-Null
+$jpackageInput = Join-Path $root ".jpackage-input"
+if (Test-Path $jpackageInput) {
+    Remove-Item -Recurse -Force $jpackageInput
+}
+New-Item -ItemType Directory -Force -Path $jpackageInput | Out-Null
+Copy-Item -Path $jarPath -Destination (Join-Path $jpackageInput (Split-Path $jarPath -Leaf)) -Force
 
 $wixLight = Get-Command light.exe -ErrorAction SilentlyContinue
 $wixCandle = Get-Command candle.exe -ErrorAction SilentlyContinue
@@ -48,12 +54,16 @@ $jpackageArgs = @(
     "--type", $PackageType,
     "--name", $AppName,
     "--dest", $jpackageOut,
-    "--input", (Join-Path $backend "target"),
+    "--input", $jpackageInput,
     "--main-jar", (Split-Path $jarPath -Leaf),
     "--main-class", "org.springframework.boot.loader.launch.JarLauncher",
     "--java-options", "-Dserver.port=8080"
 )
 
 & jpackage @jpackageArgs
+
+if (Test-Path $jpackageInput) {
+    Remove-Item -Recurse -Force $jpackageInput
+}
 
 Write-Host "[5/5] Done. Package in $jpackageOut"

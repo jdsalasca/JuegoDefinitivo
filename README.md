@@ -1,33 +1,54 @@
 # JuegoDefinitivo
 
-Plataforma educativa que convierte libros en aventuras jugables.
+Plataforma educativa open source que convierte libros en aventuras jugables para mejorar comprension lectora mediante juego.
+
+## Mision
+Democratizar el aprendizaje lector transformando contenido textual (TXT/PDF) en experiencias interactivas accesibles para ninos, familias y docentes.
+
+## Vision
+Ser una referencia abierta en tecnologia educativa hispanohablante para aprendizaje basado en narrativa interactiva, con impacto medible en comprension y motivacion.
 
 ## Monorepo
-- `apps/backend`: API Spring Boot del motor AutoBook.
-- `apps/frontend`: interfaz React para jugar historias.
-- `docs`: roadmap y arquitectura.
-- `scripts`: utilidades de empaquetado desktop.
+- `apps/backend`: API Spring Boot + motor de juego.
+- `apps/frontend`: interfaz React + TypeScript.
+- `docs`: arquitectura, desktop, roadmap y backlog.
+- `scripts`: empaquetado desktop.
 
-## Inicio rapido
+## Inicio rapido local
 ```bash
 # Terminal 1
 cd apps/backend
+mvn test
 mvn spring-boot:run
 
 # Terminal 2
 cd apps/frontend
-cp .env.example .env
+copy .env.example .env
 npm install
 npm run dev
 ```
 
-## Flujo con tu PDF
-1. En la UI React, usa `Importar Libro`.
-2. Pega: `file:///C:/Users/jdsal/Downloads/El-caballero-de-la-armadura-oxidada-robert-fisher.pdf`
-3. Elige libro e inicia partida.
+Abrir: `http://localhost:5173`
 
-## Crear paquete desktop
-```bash
-# genera exe si WiX esta instalado; si no, genera app-image
-powershell -ExecutionPolicy Bypass -File scripts/package-exe.ps1
-```
+## Uso con PDF real
+1. En la UI, pulsa `Importar Libro`.
+2. Usa una ruta como: `file:///C:/Users/<usuario>/Downloads/libro.pdf`
+3. Inicia partida y juega por escenas.
+
+## Release desktop
+- Release publico actual: `v3.1.0`
+- Incluye `AutoBookQuest-win64.zip` (portable con `AutoBookQuest.exe`).
+- Para instalador `.exe` tipo setup con `jpackage`, se requiere WiX v3 instalado.
+
+## Calidad
+- Backend: `mvn test`
+- Frontend: `npm run build`
+- CI en GitHub Actions para backend y frontend.
+
+## Documentacion clave
+- `docs/PROJECT_CHARTER.md`
+- `docs/ROADMAP.md`
+- `docs/NEXT_STEPS.md`
+- `docs/DESKTOP.md`
+- `CONTRIBUTING.md`
+- `CODE_OF_CONDUCT.md`
