@@ -1,0 +1,184 @@
+:root {
+  --bg: radial-gradient(circle at 10% 20%, #f5f0e8 0%, #dfe9f1 45%, #d2d8c6 100%);
+  --paper: #fff8ec;
+  --ink: #1f2833;
+  --accent: #1d6f8c;
+  --accent-2: #9d4d2f;
+  --ok: #2a7f62;
+  --warn: #9f2d2d;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Trebuchet MS", "Lucida Grande", "Lucida Sans Unicode", sans-serif;
+  color: var(--ink);
+  background: var(--bg);
+  min-height: 100vh;
+}
+
+.layout {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.2rem;
+}
+
+.hero {
+  border: 2px solid #2e4858;
+  border-radius: 14px;
+  padding: 1rem 1.2rem;
+  background: linear-gradient(120deg, #f8f1e7 0%, #e4f0f5 100%);
+  box-shadow: 0 8px 18px rgba(46, 72, 88, 0.15);
+  animation: rise 0.4s ease;
+}
+
+.hero h1 {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  letter-spacing: 0.04em;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.panel {
+  background: var(--paper);
+  border: 2px solid #3f5b6c;
+  border-radius: 14px;
+  padding: 1rem;
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.1);
+}
+
+label {
+  display: block;
+  margin-bottom: 0.8rem;
+  font-size: 0.92rem;
+}
+
+input,
+select,
+button {
+  width: 100%;
+  margin-top: 0.25rem;
+  border-radius: 10px;
+  border: 1px solid #557185;
+  padding: 0.56rem 0.65rem;
+  font-size: 0.95rem;
+}
+
+button {
+  cursor: pointer;
+  background: linear-gradient(140deg, var(--accent) 0%, #2d5f8a 100%);
+  color: #fff;
+  border: none;
+  font-weight: 700;
+}
+
+button:hover {
+  filter: brightness(1.05);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.row {
+  display: flex;
+  gap: 0.6rem;
+  margin-bottom: 0.8rem;
+}
+
+.row.wrap {
+  flex-wrap: wrap;
+}
+
+.row.wrap button {
+  flex: 1 1 130px;
+}
+
+.hud {
+  border-left: 4px solid var(--accent-2);
+  padding-left: 0.8rem;
+  background: #fff3df;
+  border-radius: 8px;
+}
+
+.scene {
+  border: 1px dashed #49657b;
+  border-radius: 10px;
+  padding: 0.8rem;
+  margin: 0.8rem 0;
+  background: #fff;
+}
+
+.event-tag {
+  color: var(--accent-2);
+  font-weight: 700;
+}
+
+.npc-tag {
+  color: #37546a;
+  font-style: italic;
+}
+
+.meta ul,
+.meta li {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.meta li {
+  margin-bottom: 0.3rem;
+}
+
+.meta .done {
+  color: var(--ok);
+  font-weight: 700;
+}
+
+.meta .pending {
+  color: #526273;
+}
+
+.status {
+  margin-top: 1rem;
+  border-radius: 10px;
+  border: 1px solid #476176;
+  padding: 0.7rem;
+  background: #f9f6ef;
+}
+
+.error {
+  color: var(--warn);
+  font-weight: 700;
+}
+
+@keyframes rise {
+  from {
+    transform: translateY(6px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .row {
+    flex-direction: column;
+  }
+}
