@@ -4,9 +4,10 @@
 Mantener y evolucionar un motor educativo que transforma libros de texto en aventuras jugables por consola.
 
 ## Convenciones de trabajo
-- Base tecnica: Java 17 + Maven.
+- Base tecnica: backend Java 17 + Maven, frontend React + TypeScript.
 - Pruebas: JUnit 5 obligatorias para cambios en logica de negocio.
-- Arquitectura por capas: `domain`, `engine`, `persistence`, `ui`.
+- Arquitectura por capas backend: `domain`, `engine`, `persistence`, `ui/api`.
+- Estructura monorepo: `apps/backend`, `apps/frontend`, `docs`.
 - No mezclar logica de entrada/salida con reglas del juego.
 
 ## Flujo de ramas

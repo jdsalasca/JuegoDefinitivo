@@ -26,7 +26,7 @@ Motor E2E que transforma libros `.txt` y `.pdf` en una aventura jugable con deci
 
 ## Ejecutar
 ```bash
-cd Juego/Elcaballero
+cd apps/backend
 mvn test
 mvn exec:java
 ```
