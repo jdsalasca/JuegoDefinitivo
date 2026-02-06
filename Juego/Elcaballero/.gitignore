@@ -1,0 +1,4 @@
+/target/
+/.autobook-data/
+/books/
+*.log
