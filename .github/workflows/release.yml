@@ -9,7 +9,6 @@ on:
       version:
         description: "Version tag (ej: v3.2.0)"
         required: true
-        type: string
 
 jobs:
   build-desktop:
