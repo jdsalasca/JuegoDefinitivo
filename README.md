@@ -3,17 +3,24 @@
 Plataforma educativa que convierte libros en aventuras jugables.
 
 ## Monorepo
-- `apps/backend`: motor y API del juego.
-- `apps/frontend`: interfaz React.
-- `docs`: arquitectura, roadmap y guias.
+- `apps/backend`: API Spring Boot del motor AutoBook.
+- `apps/frontend`: interfaz React para jugar historias.
+- `docs`: roadmap y arquitectura.
 
 ## Inicio rapido
 ```bash
+# Terminal 1
 cd apps/backend
-mvn test
-mvn exec:java
+mvn spring-boot:run
+
+# Terminal 2
+cd apps/frontend
+cp .env.example .env
+npm install
+npm run dev
 ```
 
-## PDF de prueba solicitado
-Usa en el menu la opcion de importar y pega:
-`file:///C:/Users/jdsal/Downloads/El-caballero-de-la-armadura-oxidada-robert-fisher.pdf`
+## Flujo con tu PDF
+1. En la UI React, usa `Importar Libro`.
+2. Pega: `file:///C:/Users/jdsal/Downloads/El-caballero-de-la-armadura-oxidada-robert-fisher.pdf`
+3. Elige libro e inicia partida.
