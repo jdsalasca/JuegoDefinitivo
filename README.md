@@ -1,26 +1,17 @@
 # JuegoDefinitivo
 
-Proyecto refactorizado a un motor de aventura educativa que convierte libros `.txt` en escenas jugables.
+Plataforma educativa en Java que convierte libros en aventuras jugables.
 
-## Estado (Febrero 2026)
-- Motor auto implementado en `Juego/Elcaballero`.
-- Proyecto Java 17 con Maven y tests JUnit 5.
-- Persistencia de partida y UX de consola para cargar libros y jugar.
+## Modulo activo
+- `Juego/Elcaballero`: motor E2E `txt/pdf -> escenas -> juego`.
 
-## Estructura
-- `Juego/Elcaballero`: aplicacion principal.
-- `Juego/Elcaballero/legacy/2020-src`: codigo original preservado.
-
-## Ejecucion rapida
+## Inicio rapido
 ```bash
 cd Juego/Elcaballero
 mvn test
 mvn exec:java
 ```
 
-## Flujo Git recomendado
-- `main`: estable.
-- `develop`: integracion.
-- `feature/*`: trabajo nuevo.
-
-Detalle completo en `Juego/Elcaballero/README.md`.
+## PDF de prueba solicitado
+Usa en el menu la opcion de importar y pega:
+`file:///C:/Users/jdsal/Downloads/El-caballero-de-la-armadura-oxidada-robert-fisher.pdf`

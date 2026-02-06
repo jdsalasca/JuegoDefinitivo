@@ -18,7 +18,10 @@ public class BookParser {
         } catch (IOException e) {
             throw new IllegalArgumentException("No se pudo leer el libro: " + bookPath, e);
         }
+        return parseText(content, maxCharsPerScene, linesPerChunk);
+    }
 
+    public List<Scene> parseText(String content, int maxCharsPerScene, int linesPerChunk) {
         String normalized = content.replace("\r\n", "\n").trim();
         if (normalized.isEmpty()) {
             return List.of();

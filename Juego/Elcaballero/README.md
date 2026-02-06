@@ -1,61 +1,48 @@
 # AutoBook Adventure
 
-Motor de consola que convierte cualquier libro `.txt` en una experiencia jugable orientada a aprendizaje infantil.
-
-## Objetivo
-Cargar un libro, fragmentarlo en escenas y generar decisiones automaticas con retos de comprension lectora.
+Motor E2E que transforma libros `.txt` y `.pdf` en una aventura jugable con decisiones, retos de lectura, inventario y progreso persistente.
 
 ## Caracteristicas
-- Modo auto para cualquier `.txt`.
-- Segmentacion inteligente por parrafos y por longitud.
-- Preguntas educativas autogeneradas por escena.
-- Sistema de stats (vida, conocimiento, coraje, enfoque, puntaje).
-- Persistencia en archivo de guardado.
-- Catalogo de libros local con muestras iniciales.
+- Importacion de libros por ruta local o URI `file:///`.
+- Lectura de texto plano y PDF (Apache PDFBox).
+- Segmentacion automatica en escenas jugables.
+- Eventos narrativos por escena: dialogo, reto, descubrimiento, batalla y descanso.
+- Sistema de inventario utilizable durante la partida.
+- Quests de aprendizaje y exploracion.
+- Guardado/carga de progreso completo (stats + inventario + escena actual).
 
 ## Arquitectura
-- `src/main/java/com/juegodefinitivo/autobook/app`: punto de entrada.
-- `src/main/java/com/juegodefinitivo/autobook/config`: carga de `application.properties`.
-- `src/main/java/com/juegodefinitivo/autobook/domain`: entidades de dominio.
-- `src/main/java/com/juegodefinitivo/autobook/engine`: parser + logica de juego + preguntas.
-- `src/main/java/com/juegodefinitivo/autobook/persistence`: guardado/carga de partida.
-- `src/main/java/com/juegodefinitivo/autobook/ui`: UX de consola.
-- `src/main/resources/application.properties`: configuracion.
-- `src/main/resources/books`: libros de muestra.
-- `legacy/2020-src`: codigo historico preservado.
+- `app`: orquestacion de inicio.
+- `config`: carga de `application.properties`.
+- `ingest`: importacion y extraccion de libros (`txt`/`pdf`).
+- `engine`: reglas del juego y acciones del jugador.
+- `narrative`: construccion de escenas con sentido y dialogos.
+- `persistence`: guardado y restauracion de partidas.
+- `ui`: interfaz de consola jugable.
 
 ## Requisitos
 - Java 17+
 - Maven 3.9+
 
-## Comandos
+## Ejecutar
 ```bash
+cd Juego/Elcaballero
 mvn test
 mvn exec:java
 ```
 
-## UX de juego
-1. Nueva partida.
-2. Seleccion de libro detectado o ruta manual.
-3. Juego por escenas con 3 acciones:
-   - explorar,
-   - avanzar con valentia,
-   - estudiar escena con pregunta.
-4. Guardado automatico por turno y opcion de guardar/salir.
+## Flujo recomendado con tu PDF
+En el menu principal:
+1. `Importar libro (.txt/.pdf)`
+2. Pega esta ruta:
+   - `file:///C:/Users/jdsal/Downloads/El-caballero-de-la-armadura-oxidada-robert-fisher.pdf`
+3. `Nueva partida`
+4. Elige ese libro y empieza a jugar.
 
-## Persistencia
-Archivo por defecto:
-- `.autobook-data/savegame.properties`
-
-Configurable desde:
-- `src/main/resources/application.properties`
+## Guardado
+- Archivo: `.autobook-data/savegame.properties`
+- Incluye: escena, vida, puntaje, inventario, respuestas correctas y descubrimientos.
 
 ## Calidad
-Tests en `src/test/java/com/juegodefinitivo/autobook`:
-- parser de escenas,
-- generacion de preguntas,
-- repositorio de guardado,
-- reglas del juego.
-
-## Notas de migracion
-El proyecto original de 2020-2021 no se elimino; se conservo en `legacy/2020-src`.
+Tests unitarios e integracion en `src/test/java/com/juegodefinitivo/autobook`.
+CI en GitHub Actions: `.github/workflows/ci.yml`.

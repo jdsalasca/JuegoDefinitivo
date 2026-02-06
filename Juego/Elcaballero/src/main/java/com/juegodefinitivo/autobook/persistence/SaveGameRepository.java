@@ -7,6 +7,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 
@@ -31,7 +33,10 @@ public class SaveGameRepository {
             properties.setProperty("courage", String.valueOf(session.getCourage()));
             properties.setProperty("focus", String.valueOf(session.getFocus()));
             properties.setProperty("score", String.valueOf(session.getScore()));
+            properties.setProperty("correctAnswers", String.valueOf(session.getCorrectAnswers()));
+            properties.setProperty("discoveries", String.valueOf(session.getDiscoveries()));
             properties.setProperty("completed", String.valueOf(session.isCompleted()));
+            properties.setProperty("inventory", encodeInventory(session.getInventory()));
 
             try (OutputStream output = Files.newOutputStream(saveFile)) {
                 properties.store(output, "AutoBook savegame");
@@ -57,13 +62,16 @@ public class SaveGameRepository {
         session.setPlayerName(properties.getProperty("playerName", "Aventurero"));
         session.setBookPath(properties.getProperty("bookPath", ""));
         session.setBookTitle(properties.getProperty("bookTitle", ""));
-        session.setCurrentScene(Integer.parseInt(properties.getProperty("currentScene", "0")));
-        session.setLife(Integer.parseInt(properties.getProperty("life", "100")));
-        session.setKnowledge(Integer.parseInt(properties.getProperty("knowledge", "0")));
-        session.setCourage(Integer.parseInt(properties.getProperty("courage", "0")));
-        session.setFocus(Integer.parseInt(properties.getProperty("focus", "0")));
-        session.setScore(Integer.parseInt(properties.getProperty("score", "0")));
+        session.setCurrentScene(parseInt(properties, "currentScene", 0));
+        session.setLife(parseInt(properties, "life", 100));
+        session.setKnowledge(parseInt(properties, "knowledge", 0));
+        session.setCourage(parseInt(properties, "courage", 0));
+        session.setFocus(parseInt(properties, "focus", 0));
+        session.setScore(parseInt(properties, "score", 0));
+        session.setCorrectAnswers(parseInt(properties, "correctAnswers", 0));
+        session.setDiscoveries(parseInt(properties, "discoveries", 0));
         session.setCompleted(Boolean.parseBoolean(properties.getProperty("completed", "false")));
+        session.replaceInventory(decodeInventory(properties.getProperty("inventory", "")));
 
         return Optional.of(session);
     }
@@ -74,5 +82,50 @@ public class SaveGameRepository {
         } catch (IOException e) {
             throw new IllegalStateException("No se pudo eliminar la partida guardada", e);
         }
+    }
+
+    private int parseInt(Properties properties, String key, int fallback) {
+        try {
+            return Integer.parseInt(properties.getProperty(key, String.valueOf(fallback)));
+        } catch (NumberFormatException ex) {
+            return fallback;
+        }
+    }
+
+    private String encodeInventory(Map<String, Integer> inventory) {
+        StringBuilder builder = new StringBuilder();
+        for (Map.Entry<String, Integer> entry : inventory.entrySet()) {
+            if (builder.length() > 0) {
+                builder.append(';');
+            }
+            builder.append(entry.getKey()).append(':').append(entry.getValue());
+        }
+        return builder.toString();
+    }
+
+    private Map<String, Integer> decodeInventory(String value) {
+        Map<String, Integer> inventory = new LinkedHashMap<>();
+        if (value == null || value.isBlank()) {
+            return inventory;
+        }
+
+        String[] tokens = value.split(";");
+        for (String token : tokens) {
+            if (token.isBlank() || !token.contains(":")) {
+                continue;
+            }
+            String[] pair = token.split(":", 2);
+            if (pair.length != 2) {
+                continue;
+            }
+            try {
+                int qty = Integer.parseInt(pair[1]);
+                if (qty > 0) {
+                    inventory.put(pair[0], qty);
+                }
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        return inventory;
     }
 }

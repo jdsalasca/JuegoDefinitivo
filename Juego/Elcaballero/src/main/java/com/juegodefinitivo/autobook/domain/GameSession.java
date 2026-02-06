@@ -1,5 +1,10 @@
 package com.juegodefinitivo.autobook.domain;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 public class GameSession {
     private String playerName;
     private String bookPath;
@@ -10,7 +15,10 @@ public class GameSession {
     private int courage;
     private int focus;
     private int score;
+    private int correctAnswers;
+    private int discoveries;
     private boolean completed;
+    private final Map<String, Integer> inventory;
 
     public GameSession() {
         this.playerName = "Aventurero";
@@ -22,7 +30,10 @@ public class GameSession {
         this.courage = 0;
         this.focus = 0;
         this.score = 0;
+        this.correctAnswers = 0;
+        this.discoveries = 0;
         this.completed = false;
+        this.inventory = new LinkedHashMap<>();
     }
 
     public String getPlayerName() {
@@ -97,6 +108,22 @@ public class GameSession {
         this.score = Math.max(0, score);
     }
 
+    public int getCorrectAnswers() {
+        return correctAnswers;
+    }
+
+    public void setCorrectAnswers(int correctAnswers) {
+        this.correctAnswers = Math.max(0, correctAnswers);
+    }
+
+    public int getDiscoveries() {
+        return discoveries;
+    }
+
+    public void setDiscoveries(int discoveries) {
+        this.discoveries = Math.max(0, discoveries);
+    }
+
     public boolean isCompleted() {
         return completed;
     }
@@ -105,28 +132,89 @@ public class GameSession {
         this.completed = completed;
     }
 
+    public Map<String, Integer> getInventory() {
+        return inventory;
+    }
+
+    public void replaceInventory(Map<String, Integer> newInventory) {
+        this.inventory.clear();
+        this.inventory.putAll(newInventory);
+    }
+
+    public void addInventoryItem(String itemId, int amount) {
+        if (amount <= 0) {
+            return;
+        }
+        inventory.merge(itemId, amount, Integer::sum);
+    }
+
+    public boolean removeInventoryItem(String itemId, int amount) {
+        int current = inventory.getOrDefault(itemId, 0);
+        if (amount <= 0 || current < amount) {
+            return false;
+        }
+        int next = current - amount;
+        if (next == 0) {
+            inventory.remove(itemId);
+        } else {
+            inventory.put(itemId, next);
+        }
+        return true;
+    }
+
     public void advanceScene() {
-        this.currentScene++;
+        currentScene++;
     }
 
     public void addLife(int delta) {
-        setLife(this.life + delta);
+        setLife(life + delta);
     }
 
     public void addKnowledge(int delta) {
-        setKnowledge(this.knowledge + delta);
+        setKnowledge(knowledge + delta);
     }
 
     public void addCourage(int delta) {
-        setCourage(this.courage + delta);
+        setCourage(courage + delta);
     }
 
     public void addFocus(int delta) {
-        setFocus(this.focus + delta);
+        setFocus(focus + delta);
     }
 
     public void addScore(int delta) {
-        setScore(this.score + delta);
+        setScore(score + delta);
+    }
+
+    public void addCorrectAnswer() {
+        setCorrectAnswers(correctAnswers + 1);
+    }
+
+    public void addDiscovery() {
+        setDiscoveries(discoveries + 1);
+    }
+
+    public List<StoryQuest> evaluateQuests() {
+        List<StoryQuest> quests = new ArrayList<>();
+        quests.add(new StoryQuest(
+                "reader",
+                "Cronista aprendiz",
+                "Responde correctamente 3 retos de lectura.",
+                correctAnswers >= 3
+        ));
+        quests.add(new StoryQuest(
+                "explorer",
+                "Explorador curioso",
+                "Descubre 2 objetos durante la aventura.",
+                discoveries >= 2
+        ));
+        quests.add(new StoryQuest(
+                "survivor",
+                "Guardia del Reino",
+                "Termina la historia con al menos 30 de vida.",
+                completed && life >= 30
+        ));
+        return quests;
     }
 
     private int clamp(int value, int min, int max) {

@@ -1,68 +1,84 @@
 package com.juegodefinitivo.autobook.ui;
 
 import com.juegodefinitivo.autobook.config.AppConfig;
-import com.juegodefinitivo.autobook.domain.ChallengeQuestion;
 import com.juegodefinitivo.autobook.domain.GameSession;
+import com.juegodefinitivo.autobook.domain.InventoryItem;
 import com.juegodefinitivo.autobook.domain.Scene;
-import com.juegodefinitivo.autobook.domain.TurnFeedback;
-import com.juegodefinitivo.autobook.engine.AutoBookGameService;
-import com.juegodefinitivo.autobook.engine.AutoQuestionService;
-import com.juegodefinitivo.autobook.engine.BookParser;
+import com.juegodefinitivo.autobook.domain.StoryQuest;
+import com.juegodefinitivo.autobook.engine.GameEngineService;
+import com.juegodefinitivo.autobook.engine.PlayerAction;
+import com.juegodefinitivo.autobook.engine.TurnOutcome;
+import com.juegodefinitivo.autobook.ingest.BookAsset;
+import com.juegodefinitivo.autobook.ingest.BookCatalogService;
+import com.juegodefinitivo.autobook.ingest.BookImportService;
+import com.juegodefinitivo.autobook.ingest.BookLoaderService;
+import com.juegodefinitivo.autobook.narrative.NarrativeBuilder;
+import com.juegodefinitivo.autobook.narrative.NarrativeScene;
 import com.juegodefinitivo.autobook.persistence.SaveGameRepository;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Scanner;
+import java.io.InputStream;
 
 public class ConsoleGameUI {
 
     private final AppConfig config;
     private final SaveGameRepository repository;
-    private final BookParser parser;
-    private final AutoBookGameService gameService;
-    private final AutoQuestionService questionService;
+    private final BookCatalogService catalog;
+    private final BookImportService importer;
+    private final BookLoaderService loader;
+    private final NarrativeBuilder narrativeBuilder;
+    private final GameEngineService gameEngine;
     private final Scanner scanner;
 
     public ConsoleGameUI(
             AppConfig config,
             SaveGameRepository repository,
-            BookParser parser,
-            AutoBookGameService gameService,
-            AutoQuestionService questionService,
+            BookCatalogService catalog,
+            BookImportService importer,
+            BookLoaderService loader,
+            NarrativeBuilder narrativeBuilder,
+            GameEngineService gameEngine,
             Scanner scanner
     ) {
         this.config = config;
         this.repository = repository;
-        this.parser = parser;
-        this.gameService = gameService;
-        this.questionService = questionService;
+        this.catalog = catalog;
+        this.importer = importer;
+        this.loader = loader;
+        this.narrativeBuilder = narrativeBuilder;
+        this.gameEngine = gameEngine;
         this.scanner = scanner;
     }
 
     public void run() {
-        ensureBookCatalog();
+        ensureSamplesVisible();
 
         boolean running = true;
         while (running) {
             System.out.println();
-            System.out.println("===== " + config.appName() + " =====");
+            System.out.println("====== " + config.appName() + " ======");
             System.out.println("1. Nueva partida");
             System.out.println("2. Continuar partida");
-            System.out.println("3. Borrar partida guardada");
-            System.out.println("4. Salir");
-            int choice = readInt("Selecciona una opcion: ", 1, 4);
+            System.out.println("3. Importar libro (.txt/.pdf)");
+            System.out.println("4. Ver catalogo");
+            System.out.println("5. Borrar partida guardada");
+            System.out.println("6. Salir");
+            int choice = readInt("Selecciona opcion: ", 1, 6);
 
             switch (choice) {
                 case 1 -> startNewGame();
                 case 2 -> continueGame();
-                case 3 -> deleteSave();
-                case 4 -> running = false;
+                case 3 -> importBook();
+                case 4 -> printCatalog();
+                case 5 -> clearSave();
+                case 6 -> running = false;
                 default -> {
                 }
             }
@@ -72,190 +88,234 @@ public class ConsoleGameUI {
     }
 
     private void startNewGame() {
-        String playerName = readText("Nombre del jugador: ");
-        Path bookPath = chooseBookPath();
-        if (bookPath == null) {
+        List<BookAsset> books = catalog.listBooks();
+        if (books.isEmpty()) {
+            System.out.println("No hay libros. Importa uno primero.");
             return;
         }
 
-        List<Scene> scenes = parser.parse(bookPath, config.sceneMaxChars(), config.sceneLinesPerChunk());
-        if (scenes.isEmpty()) {
-            System.out.println("No se pudieron crear escenas para ese libro.");
+        String player = readText("Nombre del jugador: ");
+        BookAsset selectedBook = pickBook(books);
+        if (selectedBook == null) {
             return;
         }
 
-        GameSession session = gameService.newSession(playerName, bookPath.toString(), bookPath.getFileName().toString());
+        GameSession session = new GameSession();
+        session.setPlayerName(player);
+        session.setBookPath(selectedBook.path().toString());
+        session.setBookTitle(selectedBook.title());
         repository.save(session);
-        play(session, scenes);
+
+        play(session);
     }
 
     private void continueGame() {
         Optional<GameSession> maybeSession = repository.load();
         if (maybeSession.isEmpty()) {
-            System.out.println("No hay partida guardada.");
+            System.out.println("No existe una partida guardada.");
             return;
         }
 
         GameSession session = maybeSession.get();
-        Path bookPath = Path.of(session.getBookPath());
-        if (!Files.exists(bookPath)) {
-            System.out.println("El libro guardado ya no existe: " + bookPath);
+        if (!Files.exists(Path.of(session.getBookPath()))) {
+            System.out.println("No se encontro el libro de la partida: " + session.getBookPath());
             return;
         }
-
-        List<Scene> scenes = parser.parse(bookPath, config.sceneMaxChars(), config.sceneLinesPerChunk());
-        if (session.getCurrentScene() >= scenes.size()) {
-            System.out.println("La partida ya estaba finalizada.");
-            return;
-        }
-
-        play(session, scenes);
+        play(session);
     }
 
-    private void play(GameSession session, List<Scene> scenes) {
+    private void play(GameSession session) {
+        Path path = Path.of(session.getBookPath());
+        List<Scene> baseScenes = loader.loadScenes(path, config.sceneMaxChars(), config.sceneLinesPerChunk());
+        List<NarrativeScene> scenes = narrativeBuilder.build(baseScenes);
+
+        if (scenes.isEmpty()) {
+            System.out.println("No fue posible crear narrativa jugable para este libro.");
+            return;
+        }
+
         while (!session.isCompleted() && session.getLife() > 0 && session.getCurrentScene() < scenes.size()) {
-            Scene scene = scenes.get(session.getCurrentScene());
-            printHeader(session, scenes.size());
+            NarrativeScene scene = scenes.get(session.getCurrentScene());
+            printHud(session, scenes.size(), scene.title());
             System.out.println(scene.text());
             System.out.println();
-            System.out.println("1. Explorar con calma (+enfoque, +puntos)");
-            System.out.println("2. Avanzar con valentia (riesgo, +coraje)");
-            System.out.println("3. Estudiar escena (pregunta educativa)");
-            System.out.println("4. Guardar y salir al menu");
+            System.out.println("Evento: " + scene.eventType());
+            System.out.println("Personaje: " + scene.npc());
+            System.out.println();
+            System.out.println("1. Dialogar");
+            System.out.println("2. Explorar");
+            System.out.println("3. Resolver reto");
+            System.out.println("4. Usar item");
+            System.out.println("5. Guardar y salir al menu");
 
-            int choice = readInt("Tu decision: ", 1, 4);
-            if (choice == 4) {
+            int choice = readInt("Decision: ", 1, 5);
+            if (choice == 5) {
                 repository.save(session);
                 System.out.println("Partida guardada.");
                 return;
             }
 
-            boolean answerCorrect = false;
-            if (choice == 3) {
-                ChallengeQuestion question = questionService.createQuestion(scene);
-                System.out.println(question.prompt());
-                for (int i = 0; i < question.options().size(); i++) {
-                    System.out.println((i + 1) + ". " + question.options().get(i));
-                }
-                int answer = readInt("Respuesta: ", 1, question.options().size());
-                answerCorrect = question.isCorrect(answer);
+            TurnOutcome outcome;
+            if (choice == 1) {
+                outcome = gameEngine.apply(session, scene, PlayerAction.TALK, false, null);
+            } else if (choice == 2) {
+                outcome = gameEngine.apply(session, scene, PlayerAction.EXPLORE, false, null);
+            } else if (choice == 3) {
+                boolean correct = askChallenge(scene);
+                outcome = gameEngine.apply(session, scene, PlayerAction.CHALLENGE, correct, null);
+            } else {
+                String itemId = chooseInventoryItem(session);
+                outcome = gameEngine.apply(session, scene, PlayerAction.USE_ITEM, false, itemId);
             }
 
-            TurnFeedback feedback = gameService.applyChoice(session, choice, answerCorrect);
-            gameService.moveNextScene(session, scenes.size());
+            System.out.println(outcome.message());
+            if (outcome.consumedTurn()) {
+                gameEngine.moveNextScene(session, scenes.size());
+            }
             repository.save(session);
-            System.out.println(feedback.message());
 
             if (session.getLife() <= 0) {
+                session.setCompleted(true);
+                repository.save(session);
                 System.out.println("Te quedaste sin energia. Fin de partida.");
             }
         }
 
         if (session.getCurrentScene() >= scenes.size() && session.getLife() > 0) {
-            System.out.println("Completaste el libro. Puntaje final: " + session.getScore());
             session.setCompleted(true);
             repository.save(session);
+            printFinalSummary(session);
         }
     }
 
-    private void deleteSave() {
-        repository.clear();
-        System.out.println("Partida guardada eliminada.");
+    private boolean askChallenge(NarrativeScene scene) {
+        var question = scene.challengeQuestion();
+        System.out.println(question.prompt());
+        for (int i = 0; i < question.options().size(); i++) {
+            System.out.println((i + 1) + ". " + question.options().get(i));
+        }
+        int answer = readInt("Tu respuesta: ", 1, question.options().size());
+        return question.isCorrect(answer);
     }
 
-    private void printHeader(GameSession session, int totalScenes) {
-        int sceneNumber = session.getCurrentScene() + 1;
-        int progress = (int) Math.floor((sceneNumber * 100.0) / Math.max(1, totalScenes));
-        System.out.println();
-        System.out.println("Libro: " + session.getBookTitle());
-        System.out.println("Escena " + sceneNumber + "/" + totalScenes + " (" + progress + "%)");
-        System.out.println("Vida=" + session.getLife() + " | Conocimiento=" + session.getKnowledge() + " | Coraje=" + session.getCourage() + " | Enfoque=" + session.getFocus() + " | Puntaje=" + session.getScore());
-        System.out.println("----------------------------------------");
-    }
-
-    private Path chooseBookPath() {
-        List<Path> books = listBooks();
-        if (!books.isEmpty()) {
-            System.out.println("Libros detectados:");
-            for (int i = 0; i < books.size(); i++) {
-                System.out.println((i + 1) + ". " + books.get(i).getFileName());
-            }
-        } else {
-            System.out.println("No hay libros en " + config.booksDir());
-        }
-
-        System.out.println("0. Escribir ruta manual");
-        int min = books.isEmpty() ? 0 : 0;
-        int max = books.size();
-        int selected = readInt("Selecciona libro: ", min, max);
-        if (selected == 0) {
-            String manualPath = readText("Ruta del archivo .txt: ");
-            Path path = Path.of(manualPath).toAbsolutePath().normalize();
-            if (!Files.exists(path) || !Files.isRegularFile(path)) {
-                System.out.println("Ruta invalida.");
-                return null;
-            }
-            return path;
-        }
-
-        if (selected < 1 || selected > books.size()) {
-            System.out.println("Opcion invalida.");
+    private String chooseInventoryItem(GameSession session) {
+        Map<String, Integer> inventory = session.getInventory();
+        if (inventory.isEmpty()) {
+            System.out.println("Inventario vacio.");
             return null;
         }
-        return books.get(selected - 1);
-    }
 
-    private List<Path> listBooks() {
-        List<Path> books = new ArrayList<>();
-        try {
-            Files.createDirectories(config.booksDir());
-            try (var stream = Files.list(config.booksDir())) {
-                stream.filter(Files::isRegularFile)
-                        .filter(path -> path.getFileName().toString().toLowerCase().endsWith(".txt"))
-                        .sorted()
-                        .forEach(books::add);
-            }
-        } catch (IOException e) {
-            throw new IllegalStateException("No se pudo leer el catalogo de libros", e);
+        List<String> itemIds = new ArrayList<>(inventory.keySet());
+        for (int i = 0; i < itemIds.size(); i++) {
+            String id = itemIds.get(i);
+            InventoryItem item = gameEngine.itemCatalog().get(id);
+            String name = item == null ? id : item.name();
+            System.out.println((i + 1) + ". " + name + " x" + inventory.get(id));
         }
-        return books;
+        int selected = readInt("Elige item: ", 1, itemIds.size());
+        return itemIds.get(selected - 1);
     }
 
-    private void ensureBookCatalog() {
-        try {
-            Files.createDirectories(config.booksDir());
-            copySampleIfMissing("books/caballero-union.txt", "caballero-union.txt");
-            copySampleIfMissing("books/capitulo1.txt", "capitulo1.txt");
-        } catch (IOException e) {
-            throw new IllegalStateException("No se pudo preparar el catalogo de libros", e);
+    private void printHud(GameSession session, int totalScenes, String sceneTitle) {
+        int sceneNumber = session.getCurrentScene() + 1;
+        int progress = (int) Math.floor((sceneNumber * 100.0) / Math.max(totalScenes, 1));
+        System.out.println();
+        System.out.println("Libro: " + session.getBookTitle());
+        System.out.println(sceneTitle + " (" + sceneNumber + "/" + totalScenes + ", " + progress + "%)");
+        System.out.println("Vida=" + session.getLife()
+                + " | Conocimiento=" + session.getKnowledge()
+                + " | Coraje=" + session.getCourage()
+                + " | Enfoque=" + session.getFocus()
+                + " | Puntaje=" + session.getScore());
+        System.out.println("--------------------------------------------");
+    }
+
+    private void printFinalSummary(GameSession session) {
+        System.out.println();
+        System.out.println("Has completado la aventura de " + session.getBookTitle() + ".");
+        System.out.println("Puntaje final: " + session.getScore());
+        System.out.println("Respuestas correctas: " + session.getCorrectAnswers());
+        System.out.println("Descubrimientos: " + session.getDiscoveries());
+        System.out.println("Quests:");
+        for (StoryQuest quest : session.evaluateQuests()) {
+            String status = quest.completed() ? "COMPLETADA" : "PENDIENTE";
+            System.out.println("- " + quest.title() + " -> " + status);
         }
     }
 
-    private void copySampleIfMissing(String resourcePath, String targetName) throws IOException {
-        Path target = config.booksDir().resolve(targetName);
+    private void importBook() {
+        System.out.println("Ejemplo valido: file:///C:/Users/tu-usuario/Downloads/libro.pdf");
+        String path = readText("Ruta local o file:/// : ");
+        try {
+            BookAsset asset = importer.importFromInput(path);
+            System.out.println("Libro importado: " + asset.title() + " (" + asset.format() + ")");
+        } catch (RuntimeException ex) {
+            System.out.println("Error importando libro: " + ex.getMessage());
+        }
+    }
+
+    private void printCatalog() {
+        List<BookAsset> books = catalog.listBooks();
+        if (books.isEmpty()) {
+            System.out.println("Catalogo vacio.");
+            return;
+        }
+        System.out.println("Catalogo:");
+        for (int i = 0; i < books.size(); i++) {
+            BookAsset asset = books.get(i);
+            System.out.println((i + 1) + ". " + asset.title() + " [" + asset.format() + "]");
+        }
+    }
+
+    private BookAsset pickBook(List<BookAsset> books) {
+        System.out.println("Elige un libro:");
+        for (int i = 0; i < books.size(); i++) {
+            BookAsset asset = books.get(i);
+            System.out.println((i + 1) + ". " + asset.title() + " [" + asset.format() + "]");
+        }
+        int option = readInt("Libro: ", 1, books.size());
+        return books.get(option - 1);
+    }
+
+    private void clearSave() {
+        repository.clear();
+        System.out.println("Partida eliminada.");
+    }
+
+    private void ensureSamplesVisible() {
+        copySampleIfMissing("books/caballero-union.txt", "caballero-union.txt");
+        copySampleIfMissing("books/capitulo1.txt", "capitulo1.txt");
+        catalog.listBooks();
+    }
+
+    private void copySampleIfMissing(String resource, String name) {
+        Path target = config.booksDir().resolve(name);
         if (Files.exists(target)) {
             return;
         }
-        try (InputStream resource = getClass().getClassLoader().getResourceAsStream(resourcePath)) {
-            if (resource == null) {
-                return;
+        try {
+            Files.createDirectories(config.booksDir());
+            try (InputStream in = getClass().getClassLoader().getResourceAsStream(resource)) {
+                if (in != null) {
+                    Files.copy(in, target, StandardCopyOption.REPLACE_EXISTING);
+                }
             }
-            Files.copy(resource, target, StandardCopyOption.REPLACE_EXISTING);
+        } catch (Exception ignored) {
         }
     }
 
     private int readInt(String prompt, int min, int max) {
         while (true) {
             System.out.print(prompt);
-            String value = scanner.nextLine().trim();
+            String input = scanner.nextLine().trim();
             try {
-                int parsed = Integer.parseInt(value);
-                if (parsed >= min && parsed <= max) {
-                    return parsed;
+                int value = Integer.parseInt(input);
+                if (value >= min && value <= max) {
+                    return value;
                 }
             } catch (NumberFormatException ignored) {
             }
-            System.out.println("Entrada invalida. Debe ser un numero entre " + min + " y " + max + ".");
+            System.out.println("Entrada invalida. Usa un numero entre " + min + " y " + max + ".");
         }
     }
 
@@ -266,7 +326,7 @@ public class ConsoleGameUI {
             if (!value.isBlank()) {
                 return value;
             }
-            System.out.println("El texto no puede estar vacio.");
+            System.out.println("Entrada vacia.");
         }
     }
 }
