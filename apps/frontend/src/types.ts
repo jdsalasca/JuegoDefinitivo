@@ -43,3 +43,9 @@ export type GameState = {
   currentScene: SceneView | null;
   lastMessage: string;
 };
+
+export type TelemetrySummary = {
+  totalEvents: number;
+  byEvent: Record<string, number>;
+  byStage: Record<string, number>;
+};

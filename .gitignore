@@ -3,6 +3,8 @@
 /apps/backend/target/
 /apps/frontend/dist/
 /apps/frontend/node_modules/
+/apps/frontend/playwright-report/
+/apps/frontend/test-results/
 
 # Runtime data
 /.autobook-data/

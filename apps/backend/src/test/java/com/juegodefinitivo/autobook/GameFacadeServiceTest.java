@@ -53,4 +53,17 @@ class GameFacadeServiceTest {
                 () -> facade.getState("missing-session"));
         assertEquals("Sesion no encontrada.", ex.getMessage());
     }
+
+    @Test
+    void shouldAdvanceGameWithAutoplay() {
+        facade.bootstrapSamples();
+        var books = facade.listBooks();
+        GameStateResponse state = facade.startGame("Sofia", books.get(0).path());
+
+        GameStateResponse updated = facade.applyAutoplay(state.sessionId(), "9-12", "intermediate", 4);
+
+        assertTrue(updated.score() >= state.score());
+        assertNotNull(updated.lastMessage());
+        assertTrue(updated.lastMessage().contains("auto-steps"));
+    }
 }

@@ -14,6 +14,13 @@ Ser una referencia abierta en tecnologia educativa hispanohablante para aprendiz
 - `docs`: arquitectura, desktop, roadmap y backlog.
 - `scripts`: empaquetado desktop.
 
+## GitFlow operativo
+- Rama de integracion: `develop`.
+- Rama de produccion: `main`.
+- Features siempre por `feature/* -> develop`.
+- Releases por `release/* -> main` con tag `vX.Y.Z`.
+- Guia detallada: `docs/GITFLOW.md`.
+
 ## Inicio rapido local
 ```bash
 # Terminal 1
@@ -40,6 +47,7 @@ Abrir: `http://localhost:5173`
 - Release publico actual: `v3.1.0`
 - Incluye `AutoBookQuest-win64.zip` (portable con `AutoBookQuest.exe`).
 - Para instalador `.exe` tipo setup con `jpackage`, se requiere WiX v3 instalado.
+- El workflow `release` publica tambien `latest.json` para auto-update.
 
 ## Calidad
 - Backend: `mvn test`
