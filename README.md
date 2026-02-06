@@ -1,13 +1,15 @@
 # JuegoDefinitivo
 
-Plataforma educativa en Java que convierte libros en aventuras jugables.
+Plataforma educativa que convierte libros en aventuras jugables.
 
-## Modulo activo
-- `Juego/Elcaballero`: motor E2E `txt/pdf -> escenas -> juego`.
+## Monorepo
+- `apps/backend`: motor y API del juego.
+- `apps/frontend`: interfaz React.
+- `docs`: arquitectura, roadmap y guias.
 
 ## Inicio rapido
 ```bash
-cd Juego/Elcaballero
+cd apps/backend
 mvn test
 mvn exec:java
 ```
