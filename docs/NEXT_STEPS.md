@@ -14,12 +14,13 @@
 - Modo lectura amigable para ninos (tipografia y controles ampliados en interfaz jugador).
 - Modo de alto contraste para accesibilidad en interfaz jugador.
 - Prevencion de intentos duplicados en espacio docente para mantener metricas confiables.
+- Hardening base de importacion: validacion de firma PDF y control de contenido binario en TXT.
 
 1. Persistencia productiva
 - Agregar estrategia de backup/restore y retencion.
 
 2. Seguridad y robustez
-- Endurecer validaciones de import (MIME real + escaneo anti-archivo malicioso).
+- Endurecer validaciones de import (MIME real + escaneo anti-archivo malicioso). (avance parcial: firma/contenido base)
 - Validar rutas y endurecer manejo de errores.
 - Agregar rate limiting basico por IP/sesion.
 

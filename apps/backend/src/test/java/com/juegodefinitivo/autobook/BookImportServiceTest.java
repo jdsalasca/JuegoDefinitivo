@@ -46,4 +46,22 @@ class BookImportServiceTest {
 
         assertThrows(IllegalArgumentException.class, () -> service.importFromInput(source.toString()));
     }
+
+    @Test
+    void shouldRejectPdfWithoutPdfSignature(@TempDir Path tempDir) throws Exception {
+        Path source = tempDir.resolve("fake.pdf");
+        Files.writeString(source, "esto no es un pdf real");
+        BookImportService service = new BookImportService(tempDir.resolve("catalog"), 1024 * 1024);
+
+        assertThrows(IllegalArgumentException.class, () -> service.importFromInput(source.toString()));
+    }
+
+    @Test
+    void shouldRejectTextWithBinaryContent(@TempDir Path tempDir) throws Exception {
+        Path source = tempDir.resolve("binary.txt");
+        Files.write(source, new byte[] {65, 66, 0, 67, 68});
+        BookImportService service = new BookImportService(tempDir.resolve("catalog"), 1024 * 1024);
+
+        assertThrows(IllegalArgumentException.class, () -> service.importFromInput(source.toString()));
+    }
 }

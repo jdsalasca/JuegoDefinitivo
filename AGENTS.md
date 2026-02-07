@@ -15,6 +15,7 @@ Mantener y evolucionar una plataforma educativa que transforma libros en aventur
 - Arquitectura por capas backend: `domain`, `engine`, `persistence`, `service`, `api`.
 - Estructura monorepo: `apps/backend`, `apps/frontend`, `docs`, `scripts`.
 - No mezclar entrada/salida con reglas de dominio.
+- Priorizacion vigente y criterios de revision interna: `docs/PRIORITY_REQUIREMENTS.md`.
 
 ## Flujo de ramas
 - `main`: produccion.
@@ -24,6 +25,7 @@ Mantener y evolucionar una plataforma educativa que transforma libros en aventur
 
 ## Definicion de terminado
 - Backend `mvn test` en verde.
+- Frontend `npm run test` en verde.
 - Frontend `npm run build` en verde.
 - CI sin fallos.
 - Documentacion actualizada para cambios de UX/arquitectura.

@@ -1,7 +1,9 @@
 package com.juegodefinitivo.autobook.ingest;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -30,6 +32,7 @@ public class BookImportService {
         }
         String format = detectFormat(sourcePath);
         validateFileSize(sourcePath);
+        validateContentSignature(sourcePath, format);
 
         try {
             Files.createDirectories(booksDir);
@@ -79,6 +82,57 @@ public class BookImportService {
             }
         } catch (IOException e) {
             throw new IllegalArgumentException("No se pudo validar el tamano del archivo.", e);
+        }
+    }
+
+    private void validateContentSignature(Path sourcePath, String format) {
+        if ("pdf".equals(format)) {
+            validatePdfSignature(sourcePath);
+            return;
+        }
+        if ("txt".equals(format)) {
+            validateTextSafety(sourcePath);
+        }
+    }
+
+    private void validatePdfSignature(Path sourcePath) {
+        try (InputStream input = Files.newInputStream(sourcePath)) {
+            byte[] header = input.readNBytes(5);
+            if (header.length < 5
+                    || header[0] != '%'
+                    || header[1] != 'P'
+                    || header[2] != 'D'
+                    || header[3] != 'F'
+                    || header[4] != '-') {
+                throw new IllegalArgumentException("El archivo .pdf no tiene una firma PDF valida.");
+            }
+        } catch (IOException e) {
+            throw new IllegalArgumentException("No se pudo validar el contenido del PDF.", e);
+        }
+    }
+
+    private void validateTextSafety(Path sourcePath) {
+        try (InputStream input = Files.newInputStream(sourcePath)) {
+            byte[] sample = input.readNBytes(4096);
+            if (sample.length == 0) {
+                throw new IllegalArgumentException("El archivo esta vacio.");
+            }
+            for (byte value : sample) {
+                if (value == 0) {
+                    throw new IllegalArgumentException("El archivo .txt contiene contenido binario no permitido.");
+                }
+                int unsigned = value & 0xFF;
+                boolean allowedControl = unsigned == '\n' || unsigned == '\r' || unsigned == '\t';
+                if (unsigned < 32 && !allowedControl) {
+                    throw new IllegalArgumentException("El archivo .txt contiene caracteres de control no permitidos.");
+                }
+            }
+            String text = new String(sample, StandardCharsets.UTF_8);
+            if (text.trim().isEmpty()) {
+                throw new IllegalArgumentException("El archivo .txt no contiene texto legible.");
+            }
+        } catch (IOException e) {
+            throw new IllegalArgumentException("No se pudo validar el contenido del TXT.", e);
         }
     }
 
