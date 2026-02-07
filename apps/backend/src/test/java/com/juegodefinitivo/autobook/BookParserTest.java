@@ -11,6 +11,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class BookParserTest {
 
@@ -36,5 +37,22 @@ class BookParserTest {
 
         assertFalse(scenes.isEmpty());
         assertEquals(2, scenes.size());
+    }
+
+    @Test
+    void shouldSplitByChapterHeaders() {
+        String text = """
+                Capitulo 1: Inicio
+                El caballero entra al bosque.
+
+                Capitulo 2: Puente
+                Cruza el puente y aprende algo nuevo.
+                """;
+
+        List<Scene> scenes = parser.parseText(text, 500, 4);
+
+        assertEquals(2, scenes.size());
+        assertTrue(scenes.get(0).text().contains("Capitulo 1: Inicio"));
+        assertTrue(scenes.get(1).text().contains("Capitulo 2: Puente"));
     }
 }

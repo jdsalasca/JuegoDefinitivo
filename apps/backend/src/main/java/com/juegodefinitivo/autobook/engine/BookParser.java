@@ -8,8 +8,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 public class BookParser {
+
+    private static final Pattern CHAPTER_HEADER = Pattern.compile("^(cap[ií]tulo|chapter|parte|secci[oó]n)\\b.*", Pattern.CASE_INSENSITIVE);
 
     public List<Scene> parse(Path bookPath, int maxCharsPerScene, int linesPerChunk) {
         String content;
@@ -27,7 +30,10 @@ public class BookParser {
             return List.of();
         }
 
-        List<String> rawBlocks = splitByParagraph(normalized);
+        List<String> rawBlocks = splitBySemanticSections(normalized);
+        if (rawBlocks.size() <= 1) {
+            rawBlocks = splitByParagraph(normalized);
+        }
         if (rawBlocks.size() <= 1) {
             rawBlocks = splitByFixedLines(normalized, Math.max(2, linesPerChunk));
         }
@@ -50,6 +56,42 @@ public class BookParser {
             }
         }
         return result;
+    }
+
+    private List<String> splitBySemanticSections(String text) {
+        String[] lines = text.split("\n");
+        List<String> blocks = new ArrayList<>();
+        StringBuilder current = new StringBuilder();
+
+        for (String line : lines) {
+            String cleaned = compactWhitespace(line);
+            if (cleaned.isBlank()) {
+                if (current.length() > 0) {
+                    current.append('\n');
+                }
+                continue;
+            }
+
+            if (CHAPTER_HEADER.matcher(cleaned).matches()) {
+                if (current.length() > 0) {
+                    blocks.add(compactWhitespace(current.toString()));
+                    current.setLength(0);
+                }
+                current.append(cleaned);
+                current.append('\n');
+                continue;
+            }
+
+            if (current.length() > 0) {
+                current.append(' ');
+            }
+            current.append(cleaned);
+        }
+
+        if (current.length() > 0) {
+            blocks.add(compactWhitespace(current.toString()));
+        }
+        return blocks;
     }
 
     private List<String> splitByFixedLines(String text, int linesPerChunk) {
