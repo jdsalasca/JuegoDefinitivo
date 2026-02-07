@@ -2,6 +2,13 @@
 
 Frontend React + TypeScript para jugar historias del backend.
 
+## Interfaces por rol
+- `Jugador`: ruta `/` (o `/player`)
+- `Admin Docente`: ruta `/admin`
+- `Debug`: ruta `/debug`
+
+La seleccion de interfaz desde la barra superior actualiza la URL.
+
 ## Setup
 ```bash
 cd apps/frontend
@@ -13,6 +20,11 @@ npm run dev
 ## Build
 ```bash
 npm run build
+```
+
+## Tests unitarios
+```bash
+npm run test
 ```
 
 ## Variables

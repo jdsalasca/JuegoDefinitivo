@@ -30,6 +30,7 @@ import type {
   StudentRecord,
   TelemetrySummary,
 } from "./types";
+import { INTERFACE_MODES, modeFromPath, pathFromMode, type InterfaceMode } from "./interfaceMode";
 
 type ActionKind = "TALK" | "EXPLORE" | "CHALLENGE" | "USE_ITEM";
 
@@ -124,6 +125,7 @@ function App() {
   const [telemetry, setTelemetry] = useState<TelemetrySummary>(EMPTY_TELEMETRY);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
+  const [activeInterface, setActiveInterface] = useState<InterfaceMode>(() => modeFromPath(window.location.pathname));
 
   const activeAction = useMemo(
     () => ACTIONS.find((action) => action.key === selectedAction) ?? ACTIONS[0],
@@ -254,6 +256,12 @@ function App() {
     });
   }, [selectedClassroomId, refreshClassroomData]);
 
+  useEffect(() => {
+    const onPopState = () => setActiveInterface(modeFromPath(window.location.pathname));
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
+
   async function withRequest(
     task: () => Promise<void>,
     options?: {
@@ -294,6 +302,14 @@ function App() {
   function persistSession(sessionId: string) {
     setSessionIdInput(sessionId);
     localStorage.setItem(SESSION_KEY, sessionId);
+  }
+
+  function changeInterface(mode: InterfaceMode) {
+    setActiveInterface(mode);
+    const targetPath = pathFromMode(mode);
+    if (window.location.pathname !== targetPath) {
+      window.history.pushState({}, "", targetPath);
+    }
   }
 
   function resolveItemId() {
@@ -349,8 +365,25 @@ function App() {
         </div>
       </header>
 
-      <section className="content-grid">
+      <section className="interface-switch">
+        {INTERFACE_MODES.map((mode) => (
+          <button
+            key={mode.key}
+            type="button"
+            className={`interface-tab ${activeInterface === mode.key ? "active" : ""}`}
+            onClick={() => changeInterface(mode.key)}
+          >
+            <span>{mode.label}</span>
+            <small>{mode.description}</small>
+          </button>
+        ))}
+      </section>
+
+      <section className={`content-grid content-grid-${activeInterface}`}>
+        {activeInterface !== "debug" && (
         <aside className="panel setup-panel">
+          {activeInterface === "player" && (
+          <>
           <h2>1. Preparar partida</h2>
           <section className="journey-card">
             <p className="journey-title">Ruta sugerida</p>
@@ -443,7 +476,13 @@ function App() {
           >
             Cargar sesion
           </button>
+          </>
+          )}
 
+          {activeInterface === "admin" && (
+          <>
+          <h2>Interfaz Admin Docente</h2>
+          <p className="subtitle">Gestion de aulas, estudiantes y seguimiento.</p>
           <h3>Espacio docente (MVP)</h3>
           <label>
             Aula activa
@@ -566,8 +605,34 @@ function App() {
               Descargar reporte CSV
             </a>
           )}
+          <article className="mini-panel">
+            <h4>Dashboard docente</h4>
+            {dashboard.classroomId ? (
+              <>
+                <p>
+                  Aula: <strong>{dashboard.classroomName}</strong>
+                </p>
+                <p>
+                  Estudiantes: <strong>{dashboard.students}</strong> · Asignaciones: <strong>{dashboard.assignments}</strong>
+                </p>
+                <ul>
+                  {dashboard.studentProgress.slice(0, 8).map((row) => (
+                    <li key={row.studentId}>
+                      {row.studentName}: {row.averageProgressPercent}% · Score {row.averageScore} · Intentos {row.attempts}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            ) : (
+              <p>Selecciona un aula para ver progreso docente.</p>
+            )}
+          </article>
+          </>
+          )}
         </aside>
+        )}
 
+        {activeInterface === "player" && (
         <section className="panel play-panel">
           <h2>3. Jugar</h2>
           {!state && <p className="placeholder">Inicia o carga una sesion para comenzar.</p>}
@@ -807,32 +872,111 @@ function App() {
                   )}
                 </article>
 
-                <article className="mini-panel">
-                  <h4>Dashboard docente</h4>
-                  {dashboard.classroomId ? (
-                    <>
-                      <p>
-                        Aula: <strong>{dashboard.classroomName}</strong>
-                      </p>
-                      <p>
-                        Estudiantes: <strong>{dashboard.students}</strong> · Asignaciones: <strong>{dashboard.assignments}</strong>
-                      </p>
-                      <ul>
-                        {dashboard.studentProgress.slice(0, 5).map((row) => (
-                          <li key={row.studentId}>
-                            {row.studentName}: {row.averageProgressPercent}% · Score {row.averageScore}
-                          </li>
-                        ))}
-                      </ul>
-                    </>
-                  ) : (
-                    <p>Selecciona un aula para ver progreso docente.</p>
-                  )}
-                </article>
               </section>
             </>
           )}
         </section>
+        )}
+
+        {activeInterface === "debug" && (
+          <>
+            <section className="panel setup-panel">
+              <h2>Interfaz Debug</h2>
+              <p className="subtitle">Inspeccion tecnica de sesion, telemetria y grafo narrativo.</p>
+              <label>
+                Session ID
+                <input
+                  value={sessionIdInput}
+                  onChange={(e) => setSessionIdInput(e.target.value)}
+                  placeholder="sessionId para inspeccion"
+                />
+              </label>
+              <div className="row">
+                <button
+                  disabled={loading || !sessionIdInput}
+                  onClick={() =>
+                    withRequest(async () => {
+                      const loaded = await loadState(sessionIdInput);
+                      setState(loaded);
+                    }, { successMessage: "Sesion cargada para debug." })
+                  }
+                >
+                  Cargar estado
+                </button>
+                <button
+                  disabled={loading}
+                  onClick={() =>
+                    withRequest(async () => {
+                      await refreshTelemetry();
+                      await refreshGraph(state?.sessionId ?? sessionIdInput);
+                    }, { successMessage: "Panel debug actualizado." })
+                  }
+                >
+                  Refrescar debug
+                </button>
+              </div>
+            </section>
+
+            <section className="panel play-panel">
+              <h2>Datos de depuracion</h2>
+              <section className="bottom-grid">
+                <article className="mini-panel">
+                  <h4>Telemetria por evento</h4>
+                  <ul>
+                    {Object.entries(telemetry.byEvent).length === 0 && <li>Sin datos</li>}
+                    {Object.entries(telemetry.byEvent).map(([name, value]) => (
+                      <li key={name}>
+                        {name}: {value}
+                      </li>
+                    ))}
+                  </ul>
+                </article>
+
+                <article className="mini-panel">
+                  <h4>Telemetria por etapa</h4>
+                  <ul>
+                    {Object.entries(telemetry.byStage).length === 0 && <li>Sin datos</li>}
+                    {Object.entries(telemetry.byStage).map(([name, value]) => (
+                      <li key={name}>
+                        {name}: {value}
+                      </li>
+                    ))}
+                  </ul>
+                </article>
+
+                <article className="mini-panel">
+                  <h4>Memoria narrativa</h4>
+                  {memoryEntries.length === 0 ? (
+                    <p>Sin entidades registradas.</p>
+                  ) : (
+                    <ul>
+                      {memoryEntries.map(([entity, weight]) => (
+                        <li key={entity}>
+                          {entity}: {weight}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </article>
+
+                <article className="mini-panel">
+                  <h4>Relaciones narrativas</h4>
+                  {graph.links.length === 0 ? (
+                    <p>Sin relaciones registradas.</p>
+                  ) : (
+                    <ul>
+                      {graph.links.slice(0, 10).map((link) => (
+                        <li key={`${link.source}-${link.target}`}>
+                          {link.source} ↔ {link.target}: {link.weight}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </article>
+              </section>
+            </section>
+          </>
+        )}
       </section>
 
       <footer className="feedback-strip">

@@ -17,6 +17,6 @@
 
 ## Engineering
 - [ ] Contratos OpenAPI para endpoints
-- [ ] Tests frontend unitarios
+- [x] Tests frontend unitarios
 - [x] Tests E2E de interfaz
 - [ ] Observabilidad (logs estructurados + metricas)
