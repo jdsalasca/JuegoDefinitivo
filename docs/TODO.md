@@ -8,9 +8,9 @@
 - [ ] Instalador setup `.exe` (requiere WiX)
 
 ## Product
-- [ ] Guardado multiusuario en DB
+- [x] Guardado multiusuario en DB (workspace docente con Flyway)
 - [x] Dificultad adaptativa base por edad (modo auto)
-- [ ] Modo docente con analitica
+- [x] Modo docente con analitica base + reporte CSV
 - [ ] Internacionalizacion es/en/pt
 - [ ] Accesibilidad avanzada (alto contraste, narracion)
 - [x] Pipeline base de normalizacion de texto para PDF/TXT

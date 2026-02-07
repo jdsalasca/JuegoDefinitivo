@@ -151,6 +151,15 @@ function App() {
     return Math.floor(((state.currentScene.index + 1) / state.currentScene.total) * 100);
   }, [state]);
 
+  const setupChecklist = useMemo(
+    () => [
+      { label: "Libro seleccionado", done: Boolean(selectedBookPath) },
+      { label: "Partida activa", done: Boolean(state?.sessionId) },
+      { label: "Aula seleccionada", done: Boolean(selectedClassroomId) },
+    ],
+    [selectedBookPath, state?.sessionId, selectedClassroomId],
+  );
+
   const refreshBooks = useCallback(async () => {
     const items = await listBooks();
     setBooks(items);
@@ -343,6 +352,16 @@ function App() {
       <section className="content-grid">
         <aside className="panel setup-panel">
           <h2>1. Preparar partida</h2>
+          <section className="journey-card">
+            <p className="journey-title">Ruta sugerida</p>
+            <ul>
+              {setupChecklist.map((item) => (
+                <li key={item.label} className={item.done ? "journey-done" : "journey-pending"}>
+                  <span>{item.done ? "OK" : "..."}</span> {item.label}
+                </li>
+              ))}
+            </ul>
+          </section>
 
           <label>
             Nombre del jugador

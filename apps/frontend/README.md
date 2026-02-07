@@ -27,6 +27,7 @@ npm run build
    - `Resolver reto` (seleccion de respuesta)
    - `Usar item` (seleccion de inventario)
 4. `Modo Auto Pedagogico`: ejecuta pasos automáticos configurando edad, nivel lector y pasos.
+5. `Ruta sugerida`: checklist visual para saber si ya tienes libro, sesion y aula listos.
 
 ## Estado de sesion
 - El frontend guarda el ultimo `sessionId` en `localStorage` con la clave `autobook:lastSessionId`.
