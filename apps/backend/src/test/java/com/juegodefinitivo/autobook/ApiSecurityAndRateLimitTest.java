@@ -21,6 +21,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @TestPropertySource(properties = {
         "app.security.enabled=true",
+        "app.security.allow-legacy-token=true",
         "app.security.student-token=test-student-token",
         "app.security.teacher-token=test-teacher-token",
         "app.security.admin-token=test-admin-token",

@@ -27,6 +27,10 @@ Construir una plataforma con experiencia limpia por rol:
    Criterio de aceptacion: veo estudiantes, progreso promedio y score promedio por aula.
 5. Como docente, quiero exportar CSV para trabajo institucional.
    Criterio de aceptacion: puedo descargar `report.csv` del aula activa.
+6. Como docente, quiero filtrar por periodo para analizar una ventana de clase.
+   Criterio de aceptacion: puedo aplicar `desde/hasta` en dashboard y export CSV.
+7. Como docente, quiero entender donde se abandona la actividad para ajustar mi estrategia.
+   Criterio de aceptacion: veo abandono por tipo de actividad y tiempo efectivo promedio.
 
 ## Historias MVP - Debug Interno
 1. Como equipo de producto/calidad, quiero cargar una sesion por id para inspeccionarla.
@@ -35,6 +39,8 @@ Construir una plataforma con experiencia limpia por rol:
    Criterio de aceptacion: visualizo contadores por evento y por stage.
 3. Como equipo de calidad narrativa, quiero inspeccionar memoria y relaciones de entidades.
    Criterio de aceptacion: visualizo memoria narrativa y enlaces del grafo por sesion.
+4. Como equipo tecnico, quiero autenticar por bearer en panel interno para pruebas seguras.
+   Criterio de aceptacion: puedo iniciar sesion API y operar sin token legacy.
 
 ## Priorizacion de construccion
 1. Fase 1: interfaz `Jugador` limpia + flujo completo de lectura/juego.

@@ -4,6 +4,7 @@ import type {
   Classroom,
   ClassroomDashboard,
   GameState,
+  LoginResponse,
   NarrativeGraph,
   StudentRecord,
   TelemetrySummary,
@@ -11,14 +12,20 @@ import type {
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "http://localhost:8080/api";
 const API_TOKEN = import.meta.env.VITE_API_TOKEN ?? "dev-admin-token";
+const ACCESS_TOKEN_KEY = "autobook:accessToken";
 export const API_BASE_URL = API_BASE;
+let accessToken = localStorage.getItem(ACCESS_TOKEN_KEY) ?? "";
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const headers = new Headers(init?.headers);
+  headers.set("Content-Type", "application/json");
+  if (accessToken) {
+    headers.set("Authorization", `Bearer ${accessToken}`);
+  } else if (API_TOKEN) {
+    headers.set("X-Api-Token", API_TOKEN);
+  }
   const response = await fetch(`${API_BASE}${path}`, {
-    headers: {
-      "Content-Type": "application/json",
-      "X-Api-Token": API_TOKEN,
-    },
+    headers,
     ...init,
   });
 
@@ -38,6 +45,25 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     return undefined as T;
   }
   return (await response.json()) as T;
+}
+
+export async function login(username: string, password: string): Promise<LoginResponse> {
+  const payload = await request<LoginResponse>("/auth/login", {
+    method: "POST",
+    body: JSON.stringify({ username, password }),
+  });
+  accessToken = payload.accessToken;
+  localStorage.setItem(ACCESS_TOKEN_KEY, payload.accessToken);
+  return payload;
+}
+
+export function clearAccessToken(): void {
+  accessToken = "";
+  localStorage.removeItem(ACCESS_TOKEN_KEY);
+}
+
+export function hasAccessToken(): boolean {
+  return Boolean(accessToken);
 }
 
 export async function listBooks(): Promise<BookView[]> {
@@ -149,4 +175,21 @@ export async function linkAttempt(studentId: string, assignmentId: string, sessi
 
 export async function fetchClassroomDashboard(classroomId: string): Promise<ClassroomDashboard> {
   return request<ClassroomDashboard>(`/teacher/classrooms/${classroomId}/dashboard`);
+}
+
+export async function fetchClassroomDashboardByRange(
+  classroomId: string,
+  from?: string,
+  to?: string,
+): Promise<ClassroomDashboard> {
+  const params = new URLSearchParams();
+  if (from) {
+    params.set("from", from);
+  }
+  if (to) {
+    params.set("to", to);
+  }
+  const query = params.toString();
+  const suffix = query ? `?${query}` : "";
+  return request<ClassroomDashboard>(`/teacher/classrooms/${classroomId}/dashboard${suffix}`);
 }

@@ -13,6 +13,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Repository
 public class GameSessionRuntimeRepository {
@@ -132,7 +133,7 @@ public class GameSessionRuntimeRepository {
                         SELECT session_id, player_name, book_path, book_title, current_scene,
                                life, knowledge, courage, focus, score, correct_answers,
                                discoveries, completed, inventory_json, narrative_memory_json,
-                               challenge_attempts, challenge_correct, last_message
+                               challenge_attempts, challenge_correct, last_message, updated_at
                         FROM game_sessions
                         WHERE session_id = ?
                         """,
@@ -157,12 +158,32 @@ public class GameSessionRuntimeRepository {
                             fromJson(rs.getString("narrative_memory_json")),
                             rs.getInt("challenge_attempts"),
                             rs.getInt("challenge_correct"),
-                            rs.getString("last_message")
+                            rs.getString("last_message"),
+                            rs.getTimestamp("updated_at").toInstant()
                     );
                 },
                 sessionId
         );
         return rows.stream().findFirst();
+    }
+
+    public Map<String, Instant> findLastUpdatedAt(List<String> sessionIds) {
+        if (sessionIds == null || sessionIds.isEmpty()) {
+            return Map.of();
+        }
+        String placeholders = sessionIds.stream().map(id -> "?").collect(Collectors.joining(", "));
+        String sql = "SELECT session_id, updated_at FROM game_sessions WHERE session_id IN (" + placeholders + ")";
+        return jdbcTemplate.query(
+                sql,
+                (rs) -> {
+                    Map<String, Instant> bySession = new LinkedHashMap<>();
+                    while (rs.next()) {
+                        bySession.put(rs.getString("session_id"), rs.getTimestamp("updated_at").toInstant());
+                    }
+                    return bySession;
+                },
+                sessionIds.toArray()
+        );
     }
 
     private String toJson(Map<String, Integer> value) {
@@ -197,7 +218,8 @@ public class GameSessionRuntimeRepository {
             Map<String, Integer> narrativeMemory,
             int challengeAttempts,
             int challengeCorrect,
-            String lastMessage
+            String lastMessage,
+            Instant updatedAt
     ) {
     }
 }

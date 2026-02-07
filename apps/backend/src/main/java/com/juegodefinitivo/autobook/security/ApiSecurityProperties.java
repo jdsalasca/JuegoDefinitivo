@@ -17,7 +17,9 @@ public class ApiSecurityProperties {
     private final String adminUsername;
     private final String adminPassword;
     private final String jwtSecret;
+    private final String jwtPreviousSecret;
     private final long jwtTtlSeconds;
+    private final boolean allowLegacyToken;
 
     public ApiSecurityProperties(
             @Value("${app.security.enabled:true}") boolean enabled,
@@ -31,7 +33,9 @@ public class ApiSecurityProperties {
             @Value("${app.security.admin-username:admin}") String adminUsername,
             @Value("${app.security.admin-password:admin-pass}") String adminPassword,
             @Value("${app.security.jwt-secret:change-this-secret-in-production}") String jwtSecret,
-            @Value("${app.security.jwt-ttl-seconds:28800}") long jwtTtlSeconds
+            @Value("${app.security.jwt-previous-secret:}") String jwtPreviousSecret,
+            @Value("${app.security.jwt-ttl-seconds:28800}") long jwtTtlSeconds,
+            @Value("${app.security.allow-legacy-token:true}") boolean allowLegacyToken
     ) {
         this.enabled = enabled;
         this.studentToken = studentToken == null ? "" : studentToken.trim();
@@ -44,7 +48,9 @@ public class ApiSecurityProperties {
         this.adminUsername = adminUsername == null ? "" : adminUsername.trim();
         this.adminPassword = adminPassword == null ? "" : adminPassword.trim();
         this.jwtSecret = jwtSecret == null ? "" : jwtSecret.trim();
+        this.jwtPreviousSecret = jwtPreviousSecret == null ? "" : jwtPreviousSecret.trim();
         this.jwtTtlSeconds = Math.max(300, jwtTtlSeconds);
+        this.allowLegacyToken = allowLegacyToken;
     }
 
     public boolean enabled() {
@@ -93,5 +99,13 @@ public class ApiSecurityProperties {
 
     public long jwtTtlSeconds() {
         return jwtTtlSeconds;
+    }
+
+    public String jwtPreviousSecret() {
+        return jwtPreviousSecret;
+    }
+
+    public boolean allowLegacyToken() {
+        return allowLegacyToken;
     }
 }

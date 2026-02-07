@@ -41,8 +41,8 @@ npm run test
 - `VITE_API_TOKEN` (default: `dev-admin-token`)
 
 Nota:
-- El frontend actual envia `X-Api-Token`.
-- El backend tambien soporta `Authorization: Bearer <token>` mediante `/api/auth/login`.
+- El frontend soporta `Authorization: Bearer <token>` (login API en panel admin/debug).
+- Como fallback, si no hay bearer activo usa `X-Api-Token`.
 
 ## Flujo UX guiado (v3)
 1. `Preparar partida`: define jugador e importa libro (`file:///...pdf` o ruta local).
@@ -74,6 +74,7 @@ Nota:
 - Crear asignaciones de lectura.
 - Vincular la sesion de juego actual a estudiante + asignacion.
 - Ver dashboard de progreso por estudiante.
+- Filtrar dashboard por periodo y descargar CSV con el mismo rango.
 - Descargar reporte CSV de aula.
 
 ## E2E
