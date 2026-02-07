@@ -9,6 +9,11 @@ Frontend React + TypeScript para jugar historias del backend.
 
 La seleccion de interfaz desde la barra superior actualiza la URL.
 
+## Modo lectura amigable
+- Disponible en interfaz `Jugador`.
+- Amplia tipografia, controles y contraste para lectura infantil.
+- Se guarda preferencia local en `autobook:kidMode`.
+
 ## Setup
 ```bash
 cd apps/frontend

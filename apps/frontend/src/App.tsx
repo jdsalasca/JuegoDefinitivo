@@ -74,6 +74,7 @@ const ACTIONS: ActionDescriptor[] = [
 ];
 
 const SESSION_KEY = "autobook:lastSessionId";
+const KID_MODE_KEY = "autobook:kidMode";
 const EMPTY_TELEMETRY: TelemetrySummary = {
   totalEvents: 0,
   byEvent: {},
@@ -126,6 +127,7 @@ function App() {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
   const [activeInterface, setActiveInterface] = useState<InterfaceMode>(() => modeFromPath(window.location.pathname));
+  const [kidMode, setKidMode] = useState<boolean>(false);
 
   const activeAction = useMemo(
     () => ACTIONS.find((action) => action.key === selectedAction) ?? ACTIONS[0],
@@ -243,6 +245,10 @@ function App() {
   }, []);
 
   useEffect(() => {
+    setKidMode(localStorage.getItem(KID_MODE_KEY) === "true");
+  }, []);
+
+  useEffect(() => {
     refreshGraph(state?.sessionId).catch(() => {
       setGraph(EMPTY_GRAPH);
     });
@@ -312,6 +318,14 @@ function App() {
     }
   }
 
+  function toggleKidMode() {
+    setKidMode((current) => {
+      const next = !current;
+      localStorage.setItem(KID_MODE_KEY, next ? "true" : "false");
+      return next;
+    });
+  }
+
   function resolveItemId() {
     if (selectedItemId) {
       return selectedItemId;
@@ -350,7 +364,7 @@ function App() {
   }
 
   return (
-    <main className="app-shell">
+    <main className={`app-shell ${kidMode ? "kid-mode" : ""}`}>
       <header className="topbar">
         <div>
           <p className="eyebrow">Lectura interactiva</p>
@@ -359,9 +373,16 @@ function App() {
             Flujo guiado: importa un libro, inicia sesion y juega escena por escena.
           </p>
         </div>
-        <div className="topbar-status">
-          <span className={`dot ${loading ? "busy" : "idle"}`} />
-          <span>{loading ? "Procesando" : "Disponible"}</span>
+        <div className="topbar-actions">
+          {activeInterface === "player" && (
+            <button type="button" className="kid-toggle" onClick={toggleKidMode}>
+              {kidMode ? "Modo lectura normal" : "Modo lectura amigable"}
+            </button>
+          )}
+          <div className="topbar-status">
+            <span className={`dot ${loading ? "busy" : "idle"}`} />
+            <span>{loading ? "Procesando" : "Disponible"}</span>
+          </div>
         </div>
       </header>
 
@@ -635,6 +656,7 @@ function App() {
         {activeInterface === "player" && (
         <section className="panel play-panel">
           <h2>3. Jugar</h2>
+          {kidMode && <p className="kid-helper">Lee con calma, elige una accion y avanza paso a paso.</p>}
           {!state && <p className="placeholder">Inicia o carga una sesion para comenzar.</p>}
 
           {state && (

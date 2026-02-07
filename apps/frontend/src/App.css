@@ -76,6 +76,27 @@ body {
   font-size: 0.85rem;
 }
 
+.topbar-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.kid-toggle {
+  width: auto;
+  border: 1px solid #245a6d;
+  background: linear-gradient(150deg, #2f87a6 0%, #245a6d 100%);
+  color: #fff;
+  padding: 0.45rem 0.7rem;
+  font-size: 0.82rem;
+}
+
+.kid-helper {
+  margin: 0 0 0.7rem;
+  color: #1d4f5f;
+  font-weight: 700;
+}
+
 .interface-switch {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -502,6 +523,34 @@ button:disabled {
   margin: 0;
 }
 
+.kid-mode {
+  font-size: 1.07rem;
+}
+
+.kid-mode .panel {
+  border-width: 3px;
+}
+
+.kid-mode .scene-text {
+  font-size: 1.18rem;
+  line-height: 1.65;
+}
+
+.kid-mode input,
+.kid-mode select,
+.kid-mode button {
+  font-size: 1rem;
+  padding: 0.72rem 0.78rem;
+}
+
+.kid-mode .action-label {
+  font-size: 1.02rem;
+}
+
+.kid-mode .action-desc {
+  font-size: 0.92rem;
+}
+
 .error {
   color: var(--warn);
   font-weight: 700;
@@ -544,6 +593,10 @@ button:disabled {
   .topbar {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .topbar-actions {
+    justify-content: space-between;
   }
 
   .row {

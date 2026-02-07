@@ -10,9 +10,10 @@
 - Historias de usuario iniciales en `docs/USER_STORIES.md`.
 - Navegacion por rutas por interfaz (`/`, `/admin`, `/debug`).
 - Suite unitaria frontend inicial con Vitest.
+- Persistencia runtime de sesiones de juego en DB (`game_sessions`) con Flyway.
+- Modo lectura amigable para ninos (tipografia y controles ampliados en interfaz jugador).
 
 1. Persistencia productiva
-- Migrar sesiones/inventario runtime (partidas de juego) a PostgreSQL con Flyway.
 - Agregar estrategia de backup/restore y retencion.
 
 2. Seguridad y robustez
