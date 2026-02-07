@@ -13,6 +13,7 @@ import java.util.regex.Pattern;
 public class BookTextNormalizer {
 
     private static final Pattern PAGE_NUMBER_LINE = Pattern.compile("^(?:p(?:ag(?:ina)?)?\\.?\\s*)?[0-9ivxlcdm]{1,8}$", Pattern.CASE_INSENSITIVE);
+    private static final Pattern TOC_DOTTED_LINE = Pattern.compile("^[\\p{L}\\p{N} ,;:()'\"-]{4,}\\.{2,}\\s*[0-9ivxlcdm]{1,8}$", Pattern.CASE_INSENSITIVE);
     private static final Pattern MULTI_SPACE = Pattern.compile("\\s+");
 
     public String normalize(String rawText) {
@@ -22,6 +23,7 @@ public class BookTextNormalizer {
 
         String normalizedLineBreaks = rawText
                 .replace("\uFEFF", "")
+                .replace("\u00AD", "")
                 .replace("\r\n", "\n")
                 .replace('\r', '\n');
 
@@ -31,7 +33,7 @@ public class BookTextNormalizer {
         List<String> resultLines = new ArrayList<>();
         for (int p = 0; p < pages.size(); p++) {
             List<String> filtered = filterNoise(pages.get(p), profile);
-            List<String> merged = mergeHyphenatedBreaks(filtered);
+            List<String> merged = mergeWrappedLines(mergeHyphenatedBreaks(filtered));
             if (!resultLines.isEmpty()) {
                 resultLines.add("");
             }
@@ -93,6 +95,12 @@ public class BookTextNormalizer {
             if (PAGE_NUMBER_LINE.matcher(line).matches()) {
                 continue;
             }
+            if (TOC_DOTTED_LINE.matcher(line).matches()) {
+                continue;
+            }
+            if (looksLikeTableOfContents(line)) {
+                continue;
+            }
             if (i == indexOfFirstNonBlank(page)
                     && profile.headerCount().getOrDefault(headerSig, 0) >= profile.minRepetitions()) {
                 continue;
@@ -130,6 +138,35 @@ public class BookTextNormalizer {
         return merged;
     }
 
+    private List<String> mergeWrappedLines(List<String> lines) {
+        List<String> merged = new ArrayList<>();
+        int i = 0;
+        while (i < lines.size()) {
+            String current = lines.get(i);
+            if (current.isBlank()) {
+                merged.add("");
+                i++;
+                continue;
+            }
+            StringBuilder paragraph = new StringBuilder(current);
+            int cursor = i + 1;
+            while (cursor < lines.size()) {
+                String next = lines.get(cursor);
+                if (next.isBlank()) {
+                    break;
+                }
+                if (!shouldJoin(paragraph.toString(), next)) {
+                    break;
+                }
+                paragraph.append(' ').append(next);
+                cursor++;
+            }
+            merged.add(paragraph.toString());
+            i = cursor;
+        }
+        return merged;
+    }
+
     private String collapseBlankRuns(List<String> lines) {
         StringBuilder out = new StringBuilder();
         boolean lastBlank = false;
@@ -160,6 +197,31 @@ public class BookTextNormalizer {
     private boolean startsWithLowercase(String line) {
         int codePoint = line.codePointAt(0);
         return Character.isLetter(codePoint) && Character.isLowerCase(codePoint);
+    }
+
+    private boolean shouldJoin(String previous, String next) {
+        if (previous.endsWith(".")
+                || previous.endsWith("!")
+                || previous.endsWith("?")
+                || previous.endsWith(":")
+                || previous.endsWith(";")) {
+            return false;
+        }
+        if (next.startsWith("- ")
+                || next.matches("^[0-9]+[\\).].*")
+                || next.matches("^[ivxlcdm]+[\\).].*")) {
+            return false;
+        }
+        return startsWithLowercase(next) || previous.length() >= 45;
+    }
+
+    private boolean looksLikeTableOfContents(String line) {
+        String normalized = line.toLowerCase(Locale.ROOT);
+        return (normalized.startsWith("capitulo ")
+                || normalized.startsWith("chapter ")
+                || normalized.startsWith("seccion ")
+                || normalized.startsWith("parte "))
+                && normalized.matches(".*\\b[0-9ivxlcdm]{1,8}$");
     }
 
     private boolean isHeaderFooterCandidate(String line) {
