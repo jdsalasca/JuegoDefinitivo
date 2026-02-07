@@ -59,6 +59,7 @@ Abrir: `http://localhost:5173`
 - `docs/ROADMAP.md`
 - `docs/NEXT_STEPS.md`
 - `docs/LEARNING_TRACK_TODO.md`
+- `docs/MARKET_VALUE_REQUIREMENTS.md`
 - `docs/DESKTOP.md`
 - `CONTRIBUTING.md`
 - `CODE_OF_CONDUCT.md`
