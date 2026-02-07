@@ -6,14 +6,17 @@ import {
   autoplay,
   createAssignment,
   createClassroom,
-  fetchClassroomDashboard,
+  fetchClassroomDashboardByRange,
   fetchTelemetrySummary,
   importBook,
+  login as apiLogin,
   linkAttempt,
   listAssignments,
   listBooks,
   listClassrooms,
   listStudents,
+  clearAccessToken,
+  hasAccessToken,
   loadNarrativeGraph,
   loadState,
   sendAction,
@@ -26,6 +29,7 @@ import type {
   Classroom,
   ClassroomDashboard,
   GameState,
+  LoginResponse,
   NarrativeGraph,
   StudentRecord,
   TelemetrySummary,
@@ -95,6 +99,9 @@ const EMPTY_DASHBOARD: ClassroomDashboard = {
   activeAttempts: 0,
   completedAttempts: 0,
   abandonmentRatePercent: 0,
+  totalEffectiveReadingMinutes: 0,
+  averageEffectiveMinutesPerAttempt: 0,
+  abandonmentByActivity: [],
   studentProgress: [],
 };
 
@@ -123,6 +130,11 @@ function App() {
   const [newStudentName, setNewStudentName] = useState<string>("Estudiante");
   const [newAssignmentTitle, setNewAssignmentTitle] = useState<string>("Lectura semanal");
   const [newAssignmentBookPath, setNewAssignmentBookPath] = useState<string>("");
+  const [dashboardFrom, setDashboardFrom] = useState<string>("");
+  const [dashboardTo, setDashboardTo] = useState<string>("");
+  const [authUsername, setAuthUsername] = useState<string>("teacher");
+  const [authPassword, setAuthPassword] = useState<string>("teacher-pass");
+  const [authStatus, setAuthStatus] = useState<string>(hasAccessToken() ? "Bearer activo" : "Modo legacy");
   const [dashboard, setDashboard] = useState<ClassroomDashboard>(EMPTY_DASHBOARD);
   const [state, setState] = useState<GameState | null>(null);
   const [graph, setGraph] = useState<NarrativeGraph>(EMPTY_GRAPH);
@@ -195,7 +207,7 @@ function App() {
     const [nextStudents, nextAssignments, nextDashboard] = await Promise.all([
       listStudents(classroomId),
       listAssignments(classroomId),
-      fetchClassroomDashboard(classroomId),
+      fetchClassroomDashboardByRange(classroomId, dashboardFrom || undefined, dashboardTo || undefined),
     ]);
     setStudents(nextStudents);
     setAssignments(nextAssignments);
@@ -206,7 +218,7 @@ function App() {
     if (!selectedAssignmentId && nextAssignments.length > 0) {
       setSelectedAssignmentId(nextAssignments[0].id);
     }
-  }, [selectedAssignmentId, selectedStudentId]);
+  }, [dashboardFrom, dashboardTo, selectedAssignmentId, selectedStudentId]);
 
   const refreshTelemetry = useCallback(async () => {
     try {
@@ -347,6 +359,11 @@ function App() {
     return inventoryEntries.length > 0 ? inventoryEntries[0][0] : "";
   }
 
+  async function executeApiLogin() {
+    const result: LoginResponse = await apiLogin(authUsername, authPassword);
+    setAuthStatus(`Bearer activo (${result.role})`);
+  }
+
   function canSendAction(): boolean {
     if (!state?.currentScene || state.completed) {
       return false;
@@ -397,6 +414,41 @@ function App() {
                 {highContrast ? "Contraste normal" : "Alto contraste"}
               </button>
             </>
+          )}
+          {(activeInterface === "admin" || activeInterface === "debug") && (
+            <article className="mini-panel">
+              <h4>Auth API</h4>
+              <label>
+                Usuario
+                <input value={authUsername} onChange={(e) => setAuthUsername(e.target.value)} />
+              </label>
+              <label>
+                Password
+                <input type="password" value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} />
+              </label>
+              <div className="row">
+                <button
+                  disabled={loading}
+                  onClick={() =>
+                    withRequest(executeApiLogin, {
+                      successMessage: "Sesion API iniciada con bearer.",
+                    })
+                  }
+                >
+                  Login API
+                </button>
+                <button
+                  disabled={loading}
+                  onClick={() => {
+                    clearAccessToken();
+                    setAuthStatus("Modo legacy");
+                  }}
+                >
+                  Cerrar token
+                </button>
+              </div>
+              <p>{authStatus}</p>
+            </article>
           )}
           <div className="topbar-status">
             <span className={`dot ${loading ? "busy" : "idle"}`} />
@@ -524,6 +576,16 @@ function App() {
           <h2>Interfaz Admin Docente</h2>
           <p className="subtitle">Gestion de aulas, estudiantes y seguimiento.</p>
           <h3>Espacio docente (MVP)</h3>
+          <div className="row">
+            <label>
+              Desde
+              <input type="date" value={dashboardFrom} onChange={(e) => setDashboardFrom(e.target.value)} />
+            </label>
+            <label>
+              Hasta
+              <input type="date" value={dashboardTo} onChange={(e) => setDashboardTo(e.target.value)} />
+            </label>
+          </div>
           <label>
             Aula activa
             <select value={selectedClassroomId} onChange={(e) => setSelectedClassroomId(e.target.value)}>
@@ -638,7 +700,10 @@ function App() {
           {selectedClassroomId && (
             <a
               className="csv-link"
-              href={`${API_BASE_URL}/teacher/classrooms/${selectedClassroomId}/report.csv`}
+              href={`${API_BASE_URL}/teacher/classrooms/${selectedClassroomId}/report.csv?${new URLSearchParams({
+                ...(dashboardFrom ? { from: dashboardFrom } : {}),
+                ...(dashboardTo ? { to: dashboardTo } : {}),
+              }).toString()}`}
               target="_blank"
               rel="noreferrer"
             >
@@ -661,10 +726,22 @@ function App() {
                 <p>
                   Abandono estimado: <strong>{dashboard.abandonmentRatePercent}%</strong>
                 </p>
+                <p>
+                  Tiempo efectivo total: <strong>{dashboard.totalEffectiveReadingMinutes} min</strong> · Promedio por intento: <strong>{dashboard.averageEffectiveMinutesPerAttempt} min</strong>
+                </p>
+                {dashboard.abandonmentByActivity.length > 0 && (
+                  <ul>
+                    {dashboard.abandonmentByActivity.slice(0, 4).map((activity) => (
+                      <li key={activity.eventType}>
+                        {activity.eventType}: {activity.activeAttempts} activos ({activity.activeRatePercent}%)
+                      </li>
+                    ))}
+                  </ul>
+                )}
                 <ul>
                   {dashboard.studentProgress.slice(0, 8).map((row) => (
                     <li key={row.studentId}>
-                      {row.studentName}: {row.averageProgressPercent}% · Score {row.averageScore} · Intentos {row.attempts}
+                      {row.studentName}: {row.averageProgressPercent}% · Score {row.averageScore} · {row.averageEffectiveMinutes} min/intento · Intentos {row.attempts}
                     </li>
                   ))}
                 </ul>

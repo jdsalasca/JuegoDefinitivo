@@ -62,6 +62,9 @@ public class ApiAuthInterceptor implements HandlerInterceptor {
                 return verified.get().role();
             }
         }
+        if (!properties.allowLegacyToken()) {
+            return null;
+        }
         String token = request.getHeader(TOKEN_HEADER);
         if (token == null || token.isBlank()) {
             return null;

@@ -8,6 +8,7 @@ public record StudentProgressView(
         int averageScore,
         int averageCorrectAnswers,
         int averageProgressPercent,
+        int averageEffectiveMinutes,
         String dominantDifficulty
 ) {
 }

@@ -103,6 +103,10 @@ class TeacherControllerTest {
                 .andExpect(jsonPath("$.activeAttempts").isNumber())
                 .andExpect(jsonPath("$.completedAttempts").isNumber())
                 .andExpect(jsonPath("$.abandonmentRatePercent").isNumber())
+                .andExpect(jsonPath("$.totalEffectiveReadingMinutes").isNumber())
+                .andExpect(jsonPath("$.averageEffectiveMinutesPerAttempt").isNumber())
+                .andExpect(jsonPath("$.abandonmentByActivity").isArray())
+                .andExpect(jsonPath("$.studentProgress[0].averageEffectiveMinutes").isNumber())
                 .andExpect(jsonPath("$.studentProgress[0].studentId").value(studentId));
 
         mockMvc.perform(get("/api/teacher/classrooms/" + classroomId + "/dashboard")
@@ -119,7 +123,9 @@ class TeacherControllerTest {
         mockMvc.perform(get("/api/teacher/classrooms/" + classroomId + "/report.csv"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith("text/csv"))
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("student_id")));
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("student_id")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("avg_effective_minutes")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("abandonment_activity")));
     }
 }
 

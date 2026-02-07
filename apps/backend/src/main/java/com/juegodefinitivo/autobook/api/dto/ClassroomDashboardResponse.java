@@ -11,6 +11,9 @@ public record ClassroomDashboardResponse(
         int activeAttempts,
         int completedAttempts,
         int abandonmentRatePercent,
+        int totalEffectiveReadingMinutes,
+        int averageEffectiveMinutesPerAttempt,
+        List<ActivityAbandonmentView> abandonmentByActivity,
         List<StudentProgressView> studentProgress
 ) {
 }

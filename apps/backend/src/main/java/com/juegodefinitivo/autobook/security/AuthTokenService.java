@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.Instant;
 import java.util.Base64;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -28,6 +29,9 @@ public class AuthTokenService {
 
     public IssuedToken issue(String username, ApiRole role) {
         try {
+            if (properties.jwtSecret().isBlank()) {
+                throw new IllegalStateException("JWT secret vacio. Configura app.security.jwt-secret.");
+            }
             long issuedAt = Instant.now().getEpochSecond();
             long expiresAt = issuedAt + properties.jwtTtlSeconds();
             Map<String, Object> payload = Map.of(
@@ -57,8 +61,7 @@ public class AuthTokenService {
             }
             String payloadEncoded = parts[0];
             String signature = parts[1];
-            String expected = sign(payloadEncoded);
-            if (!MessageDigest.isEqual(expected.getBytes(StandardCharsets.UTF_8), signature.getBytes(StandardCharsets.UTF_8))) {
+            if (!verifySignature(payloadEncoded, signature)) {
                 return Optional.empty();
             }
             byte[] payloadBytes = Base64.getUrlDecoder().decode(payloadEncoded);
@@ -76,9 +79,30 @@ public class AuthTokenService {
         }
     }
 
+    private boolean verifySignature(String payloadEncoded, String signature) throws Exception {
+        for (String secret : candidateSecrets()) {
+            if (secret.isBlank()) {
+                continue;
+            }
+            String expected = sign(payloadEncoded, secret);
+            if (MessageDigest.isEqual(expected.getBytes(StandardCharsets.UTF_8), signature.getBytes(StandardCharsets.UTF_8))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private List<String> candidateSecrets() {
+        return List.of(properties.jwtSecret(), properties.jwtPreviousSecret());
+    }
+
     private String sign(String payloadEncoded) throws Exception {
+        return sign(payloadEncoded, properties.jwtSecret());
+    }
+
+    private String sign(String payloadEncoded, String secret) throws Exception {
         Mac mac = Mac.getInstance("HmacSHA256");
-        SecretKeySpec key = new SecretKeySpec(properties.jwtSecret().getBytes(StandardCharsets.UTF_8), "HmacSHA256");
+        SecretKeySpec key = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
         mac.init(key);
         byte[] digest = mac.doFinal(payloadEncoded.getBytes(StandardCharsets.UTF_8));
         return Base64.getUrlEncoder().withoutPadding().encodeToString(digest);

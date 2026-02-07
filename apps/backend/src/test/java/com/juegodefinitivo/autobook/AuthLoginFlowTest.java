@@ -32,6 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "app.security.admin-username=admin-user",
         "app.security.admin-password=admin-pass",
         "app.security.jwt-secret=test-secret-value-for-jwt-signature",
+        "app.security.jwt-previous-secret=older-test-secret-value-for-jwt-signature",
         "app.security.jwt-ttl-seconds=3600",
         "app.rate-limit.enabled=false"
 })
@@ -105,5 +106,12 @@ class AuthLoginFlowTest {
         mockMvc.perform(get("/api/books")
                         .header("Authorization", "Bearer invalid.token"))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void shouldAllowLegacyTokenWhenEnabled() throws Exception {
+        mockMvc.perform(get("/api/books")
+                        .header("X-Api-Token", "legacy-admin-token"))
+                .andExpect(status().isOk());
     }
 }

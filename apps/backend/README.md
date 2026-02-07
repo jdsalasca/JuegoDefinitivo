@@ -33,8 +33,8 @@ mvn spring-boot:run
 - `GET /api/teacher/classrooms/{classroomId}/report.csv?from=YYYY-MM-DD&to=YYYY-MM-DD`
 
 ### Seguridad API (P0)
-- Header requerido para endpoints `/api/**` (excepto `/api/health`): `X-Api-Token`.
-- Alternativa recomendada: `Authorization: Bearer <accessToken>` emitido por `/api/auth/login`.
+- Recomendado: `Authorization: Bearer <accessToken>` emitido por `/api/auth/login`.
+- Compatibilidad legacy opcional: `X-Api-Token` (controlado por `app.security.allow-legacy-token`).
 - Tokens por rol configurables en `application.properties`:
   - `app.security.student-token`
   - `app.security.teacher-token`
@@ -45,7 +45,9 @@ mvn spring-boot:run
   - `app.security.admin-username` / `app.security.admin-password`
 - Firma y expiracion del token bearer:
   - `app.security.jwt-secret`
+  - `app.security.jwt-previous-secret` (ventana de rotacion)
   - `app.security.jwt-ttl-seconds`
+  - `app.security.allow-legacy-token`
 - Rate limit basico configurable:
   - `app.rate-limit.window-seconds`
   - `app.rate-limit.max-requests`
@@ -67,5 +69,6 @@ mvn spring-boot:run
 - Persistencia docente sobre JDBC + Flyway (`classrooms`, `students`, `assignments`, `attempts`).
 - Persistencia runtime de sesiones de juego sobre JDBC + Flyway (`game_sessions`).
 - Vinculacion de intentos docente protegida contra duplicados (`student_id + assignment_id + session_id`).
+- Dashboard docente incluye tiempo efectivo y abandono por actividad real.
 - Default local con H2 file DB; PostgreSQL habilitado por variables de entorno Spring datasource.
 - Importacion de libros restringida a `.txt` y `.pdf` con limite configurable (`app.import.max-bytes`, default 25MB).
