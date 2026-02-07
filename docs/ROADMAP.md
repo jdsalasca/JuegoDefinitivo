@@ -7,7 +7,7 @@
 4. Desktop packaging: `jpackage` con fallback portable.
 
 ## Next Milestones
-1. `v3.2`: persistencia PostgreSQL + migraciones Flyway.
-2. `v3.3`: panel docente y analitica de aprendizaje.
-3. `v3.4`: narracion semantica mejorada y dificultad adaptativa.
-4. `v3.5`: pruebas E2E frontend + pipeline de instalador firmado.
+1. `v3.3`: memoria narrativa, preguntas cognitivas adaptativas y benchmark de calidad.
+2. `v3.4`: persistencia PostgreSQL + migraciones Flyway.
+3. `v3.5`: panel docente y analitica de aprendizaje por estudiante.
+4. `v3.6`: instalador firmado + observabilidad de produccion.

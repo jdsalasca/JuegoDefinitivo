@@ -23,6 +23,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -94,7 +95,11 @@ public class GameFacadeService {
         }
 
         String id = UUID.randomUUID().toString();
-        sessions.put(id, new SessionState(session, scenes, "Partida iniciada."));
+        SessionState boot = new SessionState(session, scenes, "Partida iniciada.", new LinkedHashMap<>());
+        if (!scenes.isEmpty()) {
+            boot = absorbEntities(boot, scenes.get(0));
+        }
+        sessions.put(id, boot);
         return toResponse(id, sessions.get(id));
     }
 
@@ -127,6 +132,7 @@ public class GameFacadeService {
         }
 
         TurnOutcome outcome = engine.apply(session, scene, action, challengeCorrect, itemId);
+        state = absorbEntities(state, scene);
         if (outcome.consumedTurn()) {
             engine.moveNextScene(session, state.scenes().size());
         }
@@ -156,6 +162,7 @@ public class GameFacadeService {
             NarrativeScene scene = state.scenes().get(session.getCurrentScene());
             AutoplayService.PlannedTurn planned = autoplayService.planTurn(session, scene, ageBand, readingLevel);
             TurnOutcome outcome = engine.apply(session, scene, planned.action(), planned.challengeCorrect(), planned.itemId());
+            state = absorbEntities(state, scene);
             if (outcome.consumedTurn()) {
                 engine.moveNextScene(session, state.scenes().size());
             }
@@ -204,7 +211,10 @@ public class GameFacadeService {
                     current.text(),
                     current.eventType().name(),
                     current.npc(),
-                    new ChallengeView(current.challengeQuestion().prompt(), current.challengeQuestion().options())
+                    new ChallengeView(current.challengeQuestion().prompt(), current.challengeQuestion().options()),
+                    current.entities(),
+                    current.cognitiveLevel(),
+                    current.continuityHint()
             );
         }
 
@@ -225,10 +235,22 @@ public class GameFacadeService {
                 session.getCorrectAnswers(),
                 session.getDiscoveries(),
                 session.getInventory(),
+                state.narrativeMemory(),
                 quests,
                 sceneView,
                 state.lastMessage()
         );
+    }
+
+    private SessionState absorbEntities(SessionState state, NarrativeScene scene) {
+        Map<String, Integer> memory = new LinkedHashMap<>(state.narrativeMemory());
+        for (String entity : scene.entities()) {
+            String key = entity.trim();
+            if (!key.isBlank()) {
+                memory.merge(key, 1, Integer::sum);
+            }
+        }
+        return state.withMemory(memory);
     }
 
     private void copySampleIfMissing(String resource, String name) {
@@ -247,9 +269,18 @@ public class GameFacadeService {
         }
     }
 
-    private record SessionState(GameSession session, List<NarrativeScene> scenes, String lastMessage) {
+    private record SessionState(
+            GameSession session,
+            List<NarrativeScene> scenes,
+            String lastMessage,
+            Map<String, Integer> narrativeMemory
+    ) {
         private SessionState withMessage(String message) {
-            return new SessionState(session, scenes, message);
+            return new SessionState(session, scenes, message, narrativeMemory);
+        }
+
+        private SessionState withMemory(Map<String, Integer> memory) {
+            return new SessionState(session, scenes, lastMessage, memory);
         }
     }
 }
