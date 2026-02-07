@@ -6,6 +6,7 @@ import com.juegodefinitivo.autobook.engine.BookParser;
 import com.juegodefinitivo.autobook.engine.GameEngineService;
 import com.juegodefinitivo.autobook.engine.PlayerAction;
 import com.juegodefinitivo.autobook.ingest.BookLoaderService;
+import com.juegodefinitivo.autobook.ingest.BookTextNormalizer;
 import com.juegodefinitivo.autobook.ingest.ExtractorResolver;
 import com.juegodefinitivo.autobook.ingest.TxtTextExtractor;
 import com.juegodefinitivo.autobook.narrative.DialogueService;
@@ -28,6 +29,7 @@ class EndToEndFlowTest {
 
         BookLoaderService loader = new BookLoaderService(
                 new ExtractorResolver(new TxtTextExtractor(), path -> ""),
+                new BookTextNormalizer(),
                 new BookParser()
         );
         NarrativeBuilder builder = new NarrativeBuilder(new AutoQuestionService(new Random(2)), new Random(2));
