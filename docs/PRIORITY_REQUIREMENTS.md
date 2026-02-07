@@ -41,3 +41,4 @@ Definir que implementar primero para maximizar valor comunitario (estudiantes, d
 4. Auth por roles y rate limiting basico. (implementado base)
 5. Segmentacion temporal docente (`from`/`to`) en dashboard y CSV. (implementado base)
 6. Pendiente inmediato: metrica de tiempo efectivo y abandono por actividad real. (siguiente P1)
+7. Pendiente inmediato: hardening de autenticacion productiva (rotacion/gestion segura de secretos y retiro de token legacy).

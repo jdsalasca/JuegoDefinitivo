@@ -11,6 +11,7 @@ mvn spring-boot:run
 
 ## API
 - `GET /api/health`
+- `POST /api/auth/login` body: `{ "username": "...", "password": "..." }`
 - `GET /api/books`
 - `POST /api/books/import` body: `{ "path": "file:///C:/.../libro.pdf" }`
 - `POST /api/game/start` body: `{ "playerName": "Juan", "bookPath": "C:/.../libro.pdf" }`
@@ -33,10 +34,18 @@ mvn spring-boot:run
 
 ### Seguridad API (P0)
 - Header requerido para endpoints `/api/**` (excepto `/api/health`): `X-Api-Token`.
+- Alternativa recomendada: `Authorization: Bearer <accessToken>` emitido por `/api/auth/login`.
 - Tokens por rol configurables en `application.properties`:
   - `app.security.student-token`
   - `app.security.teacher-token`
   - `app.security.admin-token`
+- Credenciales por rol para login:
+  - `app.security.student-username` / `app.security.student-password`
+  - `app.security.teacher-username` / `app.security.teacher-password`
+  - `app.security.admin-username` / `app.security.admin-password`
+- Firma y expiracion del token bearer:
+  - `app.security.jwt-secret`
+  - `app.security.jwt-ttl-seconds`
 - Rate limit basico configurable:
   - `app.rate-limit.window-seconds`
   - `app.rate-limit.max-requests`

@@ -19,6 +19,7 @@
 - Rate limiting basico por IP para endpoints de escritura.
 - Filtros temporales (`from`, `to`) para dashboard y reporte docente.
 - Dashboard docente con intentos activos/finalizados y tasa estimada de abandono.
+- Login API con bearer token firmado y expiracion (compatibilidad legacy `X-Api-Token`).
 
 1. Persistencia productiva
 - Agregar estrategia de backup/restore y retencion.
@@ -27,6 +28,7 @@
 - Endurecer validaciones de import (MIME real + escaneo anti-archivo malicioso). (avance parcial: firma/contenido base)
 - Validar rutas y endurecer manejo de errores.
 - Agregar rate limiting basico por IP/sesion. (implementado base por IP)
+- Migrar clientes a bearer y desactivar token legacy por entorno productivo.
 
 3. Calidad de narrativa
 - Mejorar extraccion semantica de personajes/lugares sobre texto ya normalizado.

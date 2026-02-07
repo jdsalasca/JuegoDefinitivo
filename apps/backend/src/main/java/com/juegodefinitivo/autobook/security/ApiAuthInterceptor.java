@@ -13,11 +13,14 @@ import java.util.Map;
 public class ApiAuthInterceptor implements HandlerInterceptor {
 
     private static final String TOKEN_HEADER = "X-Api-Token";
+    private static final String AUTHORIZATION_HEADER = "Authorization";
     private final ApiSecurityProperties properties;
+    private final AuthTokenService tokenService;
     private final ObjectMapper objectMapper;
 
-    public ApiAuthInterceptor(ApiSecurityProperties properties, ObjectMapper objectMapper) {
+    public ApiAuthInterceptor(ApiSecurityProperties properties, AuthTokenService tokenService, ObjectMapper objectMapper) {
         this.properties = properties;
+        this.tokenService = tokenService;
         this.objectMapper = objectMapper;
     }
 
@@ -30,12 +33,11 @@ public class ApiAuthInterceptor implements HandlerInterceptor {
             return true;
         }
         String path = request.getRequestURI();
-        if ("/api/health".equals(path)) {
+        if ("/api/health".equals(path) || "/api/auth/login".equals(path)) {
             return true;
         }
 
-        String token = request.getHeader(TOKEN_HEADER);
-        ApiRole role = resolveRole(token);
+        ApiRole role = resolveRole(request);
         if (role == null) {
             writeError(response, HttpServletResponse.SC_UNAUTHORIZED, "Token API invalido o ausente.");
             return false;
@@ -49,7 +51,18 @@ public class ApiAuthInterceptor implements HandlerInterceptor {
         return true;
     }
 
-    private ApiRole resolveRole(String token) {
+    private ApiRole resolveRole(HttpServletRequest request) {
+        String authHeader = request.getHeader(AUTHORIZATION_HEADER);
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String bearerToken = authHeader.substring("Bearer ".length()).trim();
+            var verified = tokenService.verify(bearerToken);
+            if (verified.isPresent()) {
+                request.setAttribute("apiRole", verified.get().role().name());
+                request.setAttribute("apiUser", verified.get().username());
+                return verified.get().role();
+            }
+        }
+        String token = request.getHeader(TOKEN_HEADER);
         if (token == null || token.isBlank()) {
             return null;
         }

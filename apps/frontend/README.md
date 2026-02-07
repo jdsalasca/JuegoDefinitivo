@@ -40,6 +40,10 @@ npm run test
 - `VITE_API_BASE` (default: `http://localhost:8080/api`)
 - `VITE_API_TOKEN` (default: `dev-admin-token`)
 
+Nota:
+- El frontend actual envia `X-Api-Token`.
+- El backend tambien soporta `Authorization: Bearer <token>` mediante `/api/auth/login`.
+
 ## Flujo UX guiado (v3)
 1. `Preparar partida`: define jugador e importa libro (`file:///...pdf` o ruta local).
 2. `Iniciar partida` o `Cargar sesion`: arranca desde libro seleccionado o reanuda por `sessionId`.
