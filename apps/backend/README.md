@@ -20,6 +20,15 @@ mvn spring-boot:run
 - `GET /api/game/{sessionId}/graph`
 - `POST /api/telemetry/events`
 - `GET /api/telemetry/summary`
+- `GET /api/teacher/classrooms`
+- `POST /api/teacher/classrooms`
+- `POST /api/teacher/classrooms/{classroomId}/students`
+- `GET /api/teacher/classrooms/{classroomId}/students`
+- `POST /api/teacher/classrooms/{classroomId}/assignments`
+- `GET /api/teacher/classrooms/{classroomId}/assignments`
+- `POST /api/teacher/attempts/link`
+- `GET /api/teacher/classrooms/{classroomId}/dashboard`
+- `GET /api/teacher/classrooms/{classroomId}/report.csv`
 
 ## Arquitectura
 - `domain`: entidades de juego.

@@ -41,6 +41,14 @@ npm run build
 - Memoria narrativa (entidades mas frecuentes).
 - Relaciones narrativas (grafo top de co-ocurrencias por sesion).
 
+## Espacio docente MVP
+- Crear aula y seleccionar aula activa.
+- Agregar estudiantes.
+- Crear asignaciones de lectura.
+- Vincular la sesion de juego actual a estudiante + asignacion.
+- Ver dashboard de progreso por estudiante.
+- Descargar reporte CSV de aula.
+
 ## E2E
 ```bash
 npm run test:e2e

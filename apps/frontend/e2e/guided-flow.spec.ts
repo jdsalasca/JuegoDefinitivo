@@ -65,6 +65,42 @@ test("guided flow supports start, manual action and autoplay with telemetry", as
     });
   });
 
+  await page.route("**/api/teacher/classrooms", async (route) => {
+    if (route.request().method() === "GET") {
+      await route.fulfill({ json: [] });
+      return;
+    }
+    await route.fulfill({
+      json: { id: "cls1", name: "Aula", teacherName: "Docente", students: 0, assignments: 0 },
+    });
+  });
+  await page.route("**/api/teacher/classrooms/*/students", async (route) => {
+    if (route.request().method() === "GET") {
+      await route.fulfill({ json: [] });
+      return;
+    }
+    await route.fulfill({ status: 200, body: "{}" });
+  });
+  await page.route("**/api/teacher/classrooms/*/assignments", async (route) => {
+    if (route.request().method() === "GET") {
+      await route.fulfill({ json: [] });
+      return;
+    }
+    await route.fulfill({ status: 200, body: "{}" });
+  });
+  await page.route("**/api/teacher/classrooms/*/dashboard", async (route) => {
+    await route.fulfill({
+      json: {
+        classroomId: "cls1",
+        classroomName: "Aula",
+        teacherName: "Docente",
+        students: 0,
+        assignments: 0,
+        studentProgress: [],
+      },
+    });
+  });
+
   await page.goto("/");
   await page.getByTestId("start-game").click();
   await expect(page.getByText("Jugador:")).toContainText("Aventurero");

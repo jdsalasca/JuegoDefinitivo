@@ -66,3 +66,44 @@ export type NarrativeGraph = {
   nodes: Record<string, number>;
   links: NarrativeLink[];
 };
+
+export type Classroom = {
+  id: string;
+  name: string;
+  teacherName: string;
+  students: number;
+  assignments: number;
+};
+
+export type StudentProgress = {
+  studentId: string;
+  studentName: string;
+  attempts: number;
+  completedAttempts: number;
+  averageScore: number;
+  averageCorrectAnswers: number;
+  averageProgressPercent: number;
+  dominantDifficulty: string;
+};
+
+export type ClassroomDashboard = {
+  classroomId: string;
+  classroomName: string;
+  teacherName: string;
+  students: number;
+  assignments: number;
+  studentProgress: StudentProgress[];
+};
+
+export type StudentRecord = {
+  id: string;
+  classroomId: string;
+  name: string;
+};
+
+export type AssignmentRecord = {
+  id: string;
+  classroomId: string;
+  title: string;
+  bookPath: string;
+};
