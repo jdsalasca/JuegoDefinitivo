@@ -40,6 +40,16 @@ test("guided flow supports start, manual action and autoplay with telemetry", as
     });
   });
 
+  await page.route("**/api/game/**/graph", async (route) => {
+    await route.fulfill({
+      json: {
+        sessionId,
+        nodes: { Mentor: 2, "Lugar: Bosque": 1 },
+        links: [{ source: "Mentor", target: "Lugar: Bosque", weight: 1 }],
+      },
+    });
+  });
+
   await page.route("**/api/telemetry/events", async (route) => {
     totalEvents += 1;
     await route.fulfill({ status: 202 });
@@ -82,6 +92,7 @@ function gameState(sessionId: string, score: number, index: number, lastMessage:
     discoveries: 1,
     inventory: { potion_small: 1 },
     narrativeMemory: { Mentor: 2, "Lugar: Bosque": 1 },
+    adaptiveDifficulty: "INTERMEDIATE",
     quests: [
       {
         id: "reader",

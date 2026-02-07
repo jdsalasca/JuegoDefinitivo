@@ -43,6 +43,7 @@ export type GameState = {
   discoveries: number;
   inventory: Record<string, number>;
   narrativeMemory: Record<string, number>;
+  adaptiveDifficulty: string;
   quests: QuestView[];
   currentScene: SceneView | null;
   lastMessage: string;
@@ -52,4 +53,16 @@ export type TelemetrySummary = {
   totalEvents: number;
   byEvent: Record<string, number>;
   byStage: Record<string, number>;
+};
+
+export type NarrativeLink = {
+  source: string;
+  target: string;
+  weight: number;
+};
+
+export type NarrativeGraph = {
+  sessionId: string;
+  nodes: Record<string, number>;
+  links: NarrativeLink[];
 };
