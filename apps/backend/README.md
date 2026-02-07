@@ -20,6 +20,15 @@ mvn spring-boot:run
 - `GET /api/game/{sessionId}/graph`
 - `POST /api/telemetry/events`
 - `GET /api/telemetry/summary`
+- `GET /api/teacher/classrooms`
+- `POST /api/teacher/classrooms`
+- `POST /api/teacher/classrooms/{classroomId}/students`
+- `GET /api/teacher/classrooms/{classroomId}/students`
+- `POST /api/teacher/classrooms/{classroomId}/assignments`
+- `GET /api/teacher/classrooms/{classroomId}/assignments`
+- `POST /api/teacher/attempts/link`
+- `GET /api/teacher/classrooms/{classroomId}/dashboard`
+- `GET /api/teacher/classrooms/{classroomId}/report.csv`
 
 ## Arquitectura
 - `domain`: entidades de juego.
@@ -34,3 +43,5 @@ mvn spring-boot:run
 - CORS permitido para `http://localhost:5173`.
 - El frontend empaquetado se copia a `src/main/resources/static` solo durante build desktop.
 - El pipeline narrativo incluye normalizacion de texto, memoria de entidades, grafo de relaciones y nivel cognitivo por escena.
+- Persistencia docente sobre JDBC + Flyway (`classrooms`, `students`, `assignments`, `attempts`).
+- Default local con H2 file DB; PostgreSQL habilitado por variables de entorno Spring datasource.

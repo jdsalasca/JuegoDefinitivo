@@ -116,6 +116,48 @@ body {
   color: var(--brand-strong);
 }
 
+.journey-card {
+  border: 1px solid #d4dde1;
+  border-radius: 12px;
+  background: linear-gradient(130deg, #f8fbff 0%, #ffffff 100%);
+  padding: 0.7rem 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.journey-title {
+  margin: 0 0 0.45rem;
+  font-size: 0.86rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--brand-strong);
+}
+
+.journey-card ul {
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.25rem;
+}
+
+.journey-card li {
+  font-size: 0.88rem;
+}
+
+.journey-card li span {
+  display: inline-block;
+  width: 2rem;
+  font-weight: 700;
+}
+
+.journey-done {
+  color: var(--ok);
+}
+
+.journey-pending {
+  color: var(--ink-soft);
+}
+
 label {
   display: grid;
   gap: 0.3rem;
@@ -368,8 +410,20 @@ button:disabled {
 .bottom-grid {
   margin-top: 0.9rem;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 0.75rem;
+}
+
+.csv-link {
+  display: inline-block;
+  margin-top: 0.6rem;
+  color: #1f6f8b;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.csv-link:hover {
+  text-decoration: underline;
 }
 
 .mini-panel {
@@ -440,7 +494,7 @@ button:disabled {
   }
 
   .bottom-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 

@@ -8,8 +8,8 @@
 - Pipeline base de normalizacion de texto (headers/footers repetidos, numeros de pagina, guiones de corte).
 
 1. Persistencia productiva
-- Migrar sesiones/inventario a PostgreSQL con Flyway.
-- Agregar migraciones versionadas y estrategia de respaldo.
+- Migrar sesiones/inventario runtime (partidas de juego) a PostgreSQL con Flyway.
+- Agregar estrategia de backup/restore y retencion.
 
 2. Seguridad y robustez
 - Limitar tamano y tipo de archivos importados.
@@ -22,9 +22,9 @@
 - Incorporar niveles de dificultad por edad.
 
 4. Experiencia docente
-- Dashboard de progreso por estudiante.
-- Metricas de comprension (aciertos, tiempo, abandono).
-- Export de reportes CSV.
+- Metricas de tiempo efectivo y abandono por actividad.
+- Segmentacion por cohorte (curso, nivel lector, fecha).
+- Reporte PDF ademas de CSV.
 
 5. Plataforma
 - Frontend tests unitarios (Vitest + Testing Library).

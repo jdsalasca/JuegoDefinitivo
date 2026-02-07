@@ -37,6 +37,12 @@ npm run dev
 
 Abrir: `http://localhost:5173`
 
+## Persistencia (v3.4)
+- Flyway ejecuta migraciones SQL en startup (`apps/backend/src/main/resources/db/migration`).
+- Default local: H2 en archivo (`./.autobook-data/autobook-db`).
+- Produccion: configurar PostgreSQL via `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD`.
+- Si existe `teacher-workspace.json` legado, el backend migra su contenido a DB en el primer arranque y lo renombra a `teacher-workspace.migrated.json`.
+
 ## Uso con PDF real
 1. En `1. Preparar partida`, usa `Importar libro` con ruta como `file:///C:/Users/<usuario>/Downloads/libro.pdf`.
 2. Selecciona el libro importado y pulsa `2. Iniciar partida`.
@@ -44,7 +50,7 @@ Abrir: `http://localhost:5173`
 4. Para continuar luego, usa `Cargar sesion` con el `sessionId` (tambien se recuerda automaticamente en el navegador).
 
 ## Release desktop
-- Release publico actual: `v3.1.0`
+- Release publico actual: `v3.4.0`
 - Incluye `AutoBookQuest-win64.zip` (portable con `AutoBookQuest.exe`).
 - Para instalador `.exe` tipo setup con `jpackage`, se requiere WiX v3 instalado.
 - El workflow `release` publica tambien `latest.json` para auto-update.
@@ -59,6 +65,7 @@ Abrir: `http://localhost:5173`
 - `docs/ROADMAP.md`
 - `docs/NEXT_STEPS.md`
 - `docs/LEARNING_TRACK_TODO.md`
+- `docs/MARKET_VALUE_REQUIREMENTS.md`
 - `docs/DESKTOP.md`
 - `CONTRIBUTING.md`
 - `CODE_OF_CONDUCT.md`

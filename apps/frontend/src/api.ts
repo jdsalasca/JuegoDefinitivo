@@ -1,6 +1,16 @@
-import type { BookView, GameState, NarrativeGraph, TelemetrySummary } from "./types";
+import type {
+  AssignmentRecord,
+  BookView,
+  Classroom,
+  ClassroomDashboard,
+  GameState,
+  NarrativeGraph,
+  StudentRecord,
+  TelemetrySummary,
+} from "./types";
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "http://localhost:8080/api";
+export const API_BASE_URL = API_BASE;
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, {
@@ -93,4 +103,48 @@ export async function trackEvent(
 
 export async function fetchTelemetrySummary(): Promise<TelemetrySummary> {
   return request<TelemetrySummary>("/telemetry/summary");
+}
+
+export async function listClassrooms(): Promise<Classroom[]> {
+  return request<Classroom[]>("/teacher/classrooms");
+}
+
+export async function createClassroom(name: string, teacherName: string): Promise<Classroom> {
+  return request<Classroom>("/teacher/classrooms", {
+    method: "POST",
+    body: JSON.stringify({ name, teacherName }),
+  });
+}
+
+export async function addStudent(classroomId: string, name: string): Promise<void> {
+  await request<void>(`/teacher/classrooms/${classroomId}/students`, {
+    method: "POST",
+    body: JSON.stringify({ name }),
+  });
+}
+
+export async function listStudents(classroomId: string): Promise<StudentRecord[]> {
+  return request<StudentRecord[]>(`/teacher/classrooms/${classroomId}/students`);
+}
+
+export async function createAssignment(classroomId: string, title: string, bookPath: string): Promise<void> {
+  await request<void>(`/teacher/classrooms/${classroomId}/assignments`, {
+    method: "POST",
+    body: JSON.stringify({ title, bookPath }),
+  });
+}
+
+export async function listAssignments(classroomId: string): Promise<AssignmentRecord[]> {
+  return request<AssignmentRecord[]>(`/teacher/classrooms/${classroomId}/assignments`);
+}
+
+export async function linkAttempt(studentId: string, assignmentId: string, sessionId: string): Promise<void> {
+  await request<void>("/teacher/attempts/link", {
+    method: "POST",
+    body: JSON.stringify({ studentId, assignmentId, sessionId }),
+  });
+}
+
+export async function fetchClassroomDashboard(classroomId: string): Promise<ClassroomDashboard> {
+  return request<ClassroomDashboard>(`/teacher/classrooms/${classroomId}/dashboard`);
 }

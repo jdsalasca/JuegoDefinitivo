@@ -3,6 +3,12 @@
 ## Objetivo del repositorio
 Mantener y evolucionar una plataforma educativa que transforma libros en aventuras jugables via API web y frontend interactivo.
 
+## Agentes de producto (enfoque mercado)
+- `Student Agent`: prioriza engagement, claridad de juego y progresion pedagogica.
+- `Teacher Agent`: prioriza evidencia, seguimiento por estudiante y exportabilidad.
+- `Quality Agent`: protege coherencia narrativa y calidad de preguntas mediante benchmarks.
+- `Delivery Agent`: mantiene GitFlow, CI verde y releases reproducibles.
+
 ## Convenciones de trabajo
 - Base tecnica: backend Java 17 + Maven, frontend React + TypeScript.
 - Pruebas: cobertura automatizada para cambios de comportamiento.
@@ -21,6 +27,7 @@ Mantener y evolucionar una plataforma educativa que transforma libros en aventur
 - Frontend `npm run build` en verde.
 - CI sin fallos.
 - Documentacion actualizada para cambios de UX/arquitectura.
+- Requisitos de mercado trazados en `docs/MARKET_VALUE_REQUIREMENTS.md`.
 
 ## Checklist de PR
 - Cobertura de tests para comportamiento nuevo.

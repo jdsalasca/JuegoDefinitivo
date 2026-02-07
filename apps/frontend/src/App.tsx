@@ -1,7 +1,35 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import "./App.css";
-import { autoplay, fetchTelemetrySummary, importBook, listBooks, loadNarrativeGraph, loadState, sendAction, startGame, trackEvent } from "./api";
-import type { BookView, GameState, NarrativeGraph, TelemetrySummary } from "./types";
+import {
+  API_BASE_URL,
+  addStudent,
+  autoplay,
+  createAssignment,
+  createClassroom,
+  fetchClassroomDashboard,
+  fetchTelemetrySummary,
+  importBook,
+  linkAttempt,
+  listAssignments,
+  listBooks,
+  listClassrooms,
+  listStudents,
+  loadNarrativeGraph,
+  loadState,
+  sendAction,
+  startGame,
+  trackEvent,
+} from "./api";
+import type {
+  AssignmentRecord,
+  BookView,
+  Classroom,
+  ClassroomDashboard,
+  GameState,
+  NarrativeGraph,
+  StudentRecord,
+  TelemetrySummary,
+} from "./types";
 
 type ActionKind = "TALK" | "EXPLORE" | "CHALLENGE" | "USE_ITEM";
 
@@ -55,6 +83,14 @@ const EMPTY_GRAPH: NarrativeGraph = {
   nodes: {},
   links: [],
 };
+const EMPTY_DASHBOARD: ClassroomDashboard = {
+  classroomId: "",
+  classroomName: "",
+  teacherName: "",
+  students: 0,
+  assignments: 0,
+  studentProgress: [],
+};
 
 function App() {
   const [books, setBooks] = useState<BookView[]>([]);
@@ -70,6 +106,18 @@ function App() {
   const [autoAgeBand, setAutoAgeBand] = useState<string>("9-12");
   const [autoReadingLevel, setAutoReadingLevel] = useState<string>("intermediate");
   const [autoSteps, setAutoSteps] = useState<number>(3);
+  const [classrooms, setClassrooms] = useState<Classroom[]>([]);
+  const [students, setStudents] = useState<StudentRecord[]>([]);
+  const [assignments, setAssignments] = useState<AssignmentRecord[]>([]);
+  const [selectedClassroomId, setSelectedClassroomId] = useState<string>("");
+  const [selectedStudentId, setSelectedStudentId] = useState<string>("");
+  const [selectedAssignmentId, setSelectedAssignmentId] = useState<string>("");
+  const [newClassroomName, setNewClassroomName] = useState<string>("Aula 5A");
+  const [newTeacherName, setNewTeacherName] = useState<string>("Docente");
+  const [newStudentName, setNewStudentName] = useState<string>("Estudiante");
+  const [newAssignmentTitle, setNewAssignmentTitle] = useState<string>("Lectura semanal");
+  const [newAssignmentBookPath, setNewAssignmentBookPath] = useState<string>("");
+  const [dashboard, setDashboard] = useState<ClassroomDashboard>(EMPTY_DASHBOARD);
   const [state, setState] = useState<GameState | null>(null);
   const [graph, setGraph] = useState<NarrativeGraph>(EMPTY_GRAPH);
   const [statusMessage, setStatusMessage] = useState<string>("Listo para iniciar.");
@@ -103,6 +151,15 @@ function App() {
     return Math.floor(((state.currentScene.index + 1) / state.currentScene.total) * 100);
   }, [state]);
 
+  const setupChecklist = useMemo(
+    () => [
+      { label: "Libro seleccionado", done: Boolean(selectedBookPath) },
+      { label: "Partida activa", done: Boolean(state?.sessionId) },
+      { label: "Aula seleccionada", done: Boolean(selectedClassroomId) },
+    ],
+    [selectedBookPath, state?.sessionId, selectedClassroomId],
+  );
+
   const refreshBooks = useCallback(async () => {
     const items = await listBooks();
     setBooks(items);
@@ -110,6 +167,37 @@ function App() {
       setSelectedBookPath(items[0].path);
     }
   }, [selectedBookPath]);
+
+  const refreshClassrooms = useCallback(async () => {
+    const items = await listClassrooms();
+    setClassrooms(items);
+    if (!selectedClassroomId && items.length > 0) {
+      setSelectedClassroomId(items[0].id);
+    }
+  }, [selectedClassroomId]);
+
+  const refreshClassroomData = useCallback(async (classroomId?: string) => {
+    if (!classroomId) {
+      setStudents([]);
+      setAssignments([]);
+      setDashboard(EMPTY_DASHBOARD);
+      return;
+    }
+    const [nextStudents, nextAssignments, nextDashboard] = await Promise.all([
+      listStudents(classroomId),
+      listAssignments(classroomId),
+      fetchClassroomDashboard(classroomId),
+    ]);
+    setStudents(nextStudents);
+    setAssignments(nextAssignments);
+    setDashboard(nextDashboard);
+    if (!selectedStudentId && nextStudents.length > 0) {
+      setSelectedStudentId(nextStudents[0].id);
+    }
+    if (!selectedAssignmentId && nextAssignments.length > 0) {
+      setSelectedAssignmentId(nextAssignments[0].id);
+    }
+  }, [selectedAssignmentId, selectedStudentId]);
 
   const refreshTelemetry = useCallback(async () => {
     try {
@@ -137,10 +225,13 @@ function App() {
     refreshBooks().catch(() => {
       setError("No se pudo cargar el catalogo inicial.");
     });
+    refreshClassrooms().catch(() => {
+      setError("No se pudo cargar aulas.");
+    });
     refreshTelemetry().catch(() => {
       setTelemetry(EMPTY_TELEMETRY);
     });
-  }, [refreshBooks, refreshTelemetry]);
+  }, [refreshBooks, refreshClassrooms, refreshTelemetry]);
 
   useEffect(() => {
     const savedSession = localStorage.getItem(SESSION_KEY);
@@ -154,6 +245,14 @@ function App() {
       setGraph(EMPTY_GRAPH);
     });
   }, [state?.sessionId, refreshGraph]);
+
+  useEffect(() => {
+    refreshClassroomData(selectedClassroomId).catch(() => {
+      setStudents([]);
+      setAssignments([]);
+      setDashboard(EMPTY_DASHBOARD);
+    });
+  }, [selectedClassroomId, refreshClassroomData]);
 
   async function withRequest(
     task: () => Promise<void>,
@@ -253,6 +352,16 @@ function App() {
       <section className="content-grid">
         <aside className="panel setup-panel">
           <h2>1. Preparar partida</h2>
+          <section className="journey-card">
+            <p className="journey-title">Ruta sugerida</p>
+            <ul>
+              {setupChecklist.map((item) => (
+                <li key={item.label} className={item.done ? "journey-done" : "journey-pending"}>
+                  <span>{item.done ? "OK" : "..."}</span> {item.label}
+                </li>
+              ))}
+            </ul>
+          </section>
 
           <label>
             Nombre del jugador
@@ -334,6 +443,129 @@ function App() {
           >
             Cargar sesion
           </button>
+
+          <h3>Espacio docente (MVP)</h3>
+          <label>
+            Aula activa
+            <select value={selectedClassroomId} onChange={(e) => setSelectedClassroomId(e.target.value)}>
+              <option value="">Selecciona aula</option>
+              {classrooms.map((classroom) => (
+                <option key={classroom.id} value={classroom.id}>
+                  {classroom.name} ({classroom.teacherName})
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Nueva aula
+            <input value={newClassroomName} onChange={(e) => setNewClassroomName(e.target.value)} />
+          </label>
+          <label>
+            Docente
+            <input value={newTeacherName} onChange={(e) => setNewTeacherName(e.target.value)} />
+          </label>
+          <button
+            disabled={loading}
+            onClick={() =>
+              withRequest(async () => {
+                const classroom = await createClassroom(newClassroomName, newTeacherName);
+                await refreshClassrooms();
+                setSelectedClassroomId(classroom.id);
+              }, { successMessage: "Aula creada." })
+            }
+          >
+            Crear aula
+          </button>
+
+          <label>
+            Estudiante nuevo
+            <input value={newStudentName} onChange={(e) => setNewStudentName(e.target.value)} />
+          </label>
+          <button
+            disabled={loading || !selectedClassroomId}
+            onClick={() =>
+              withRequest(async () => {
+                await addStudent(selectedClassroomId, newStudentName);
+                await refreshClassroomData(selectedClassroomId);
+              }, { successMessage: "Estudiante agregado." })
+            }
+          >
+            Agregar estudiante
+          </button>
+
+          <label>
+            Asignacion
+            <input value={newAssignmentTitle} onChange={(e) => setNewAssignmentTitle(e.target.value)} />
+          </label>
+          <label>
+            Libro para asignacion
+            <input
+              value={newAssignmentBookPath}
+              onChange={(e) => setNewAssignmentBookPath(e.target.value)}
+              placeholder="Usa ruta de libro existente"
+            />
+          </label>
+          <button
+            disabled={loading || !selectedClassroomId}
+            onClick={() =>
+              withRequest(async () => {
+                await createAssignment(
+                  selectedClassroomId,
+                  newAssignmentTitle,
+                  newAssignmentBookPath || selectedBookPath,
+                );
+                await refreshClassroomData(selectedClassroomId);
+              }, { successMessage: "Asignacion creada." })
+            }
+          >
+            Crear asignacion
+          </button>
+
+          <label>
+            Estudiante (vincular intento)
+            <select value={selectedStudentId} onChange={(e) => setSelectedStudentId(e.target.value)}>
+              <option value="">Selecciona estudiante</option>
+              {students.map((student) => (
+                <option key={student.id} value={student.id}>
+                  {student.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Asignacion (vincular intento)
+            <select value={selectedAssignmentId} onChange={(e) => setSelectedAssignmentId(e.target.value)}>
+              <option value="">Selecciona asignacion</option>
+              {assignments.map((assignment) => (
+                <option key={assignment.id} value={assignment.id}>
+                  {assignment.title}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button
+            disabled={loading || !state?.sessionId || !selectedStudentId || !selectedAssignmentId}
+            onClick={() =>
+              withRequest(async () => {
+                await linkAttempt(selectedStudentId, selectedAssignmentId, state!.sessionId);
+                if (selectedClassroomId) {
+                  await refreshClassroomData(selectedClassroomId);
+                }
+              }, { successMessage: "Intento vinculado a estudiante." })
+            }
+          >
+            Vincular sesion actual
+          </button>
+          {selectedClassroomId && (
+            <a
+              className="csv-link"
+              href={`${API_BASE_URL}/teacher/classrooms/${selectedClassroomId}/report.csv`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Descargar reporte CSV
+            </a>
+          )}
         </aside>
 
         <section className="panel play-panel">
@@ -572,6 +804,29 @@ function App() {
                         </li>
                       ))}
                     </ul>
+                  )}
+                </article>
+
+                <article className="mini-panel">
+                  <h4>Dashboard docente</h4>
+                  {dashboard.classroomId ? (
+                    <>
+                      <p>
+                        Aula: <strong>{dashboard.classroomName}</strong>
+                      </p>
+                      <p>
+                        Estudiantes: <strong>{dashboard.students}</strong> · Asignaciones: <strong>{dashboard.assignments}</strong>
+                      </p>
+                      <ul>
+                        {dashboard.studentProgress.slice(0, 5).map((row) => (
+                          <li key={row.studentId}>
+                            {row.studentName}: {row.averageProgressPercent}% · Score {row.averageScore}
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  ) : (
+                    <p>Selecciona un aula para ver progreso docente.</p>
                   )}
                 </article>
               </section>
