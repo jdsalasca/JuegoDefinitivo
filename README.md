@@ -37,6 +37,25 @@ npm run dev
 
 Abrir: `http://localhost:5173`
 
+## Interfaces y direcciones
+- Frontend local (Vite):
+  - Jugador: `http://localhost:5173/`
+  - Admin Docente: `http://localhost:5173/admin`
+  - Debug interno: `http://localhost:5173/debug`
+- Backend API local (Spring Boot):
+  - Base API: `http://localhost:8080/api`
+  - Health: `http://localhost:8080/api/health`
+  - Dashboard docente: `http://localhost:8080/api/teacher/classrooms/{classroomId}/dashboard`
+  - CSV docente: `http://localhost:8080/api/teacher/classrooms/{classroomId}/report.csv`
+- Desktop (ejecutable):
+  - Al abrir `AutoBookQuest.exe`, la app expone interfaz en `http://localhost:8080/`.
+  - Rutas de uso en desktop: `/` (Jugador), `/admin` (Admin), `/debug` (Debug).
+
+## Modos de uso de la plataforma
+- `Jugador`: lectura interactiva, acciones manuales, modo auto pedagógico, memoria narrativa.
+- `Admin Docente`: aulas, estudiantes, asignaciones, vínculo de intentos, dashboard con métricas y export CSV.
+- `Debug`: inspección técnica (telemetría, estado de sesión y relaciones narrativas).
+
 ## Persistencia (v3.4)
 - Flyway ejecuta migraciones SQL en startup (`apps/backend/src/main/resources/db/migration`).
 - Default local: H2 en archivo (`./.autobook-data/autobook-db`).
@@ -50,11 +69,11 @@ Abrir: `http://localhost:5173`
 4. Para continuar luego, usa `Cargar sesion` con el `sessionId` (tambien se recuerda automaticamente en el navegador).
 
 ## Release desktop
-- Release publico actual: `v3.5.0`
+- Release publico actual: `v3.5.1`
 - Incluye `AutoBookQuest-win64.zip` (portable con `AutoBookQuest.exe`).
 - Para instalador `.exe` tipo setup con `jpackage`, se requiere WiX v3 instalado.
 - El workflow `release` publica tambien `latest.json` para auto-update.
-- Notas del release: `docs/RELEASE_NOTES_v3.5.0.md`.
+- Notas del release: `docs/RELEASE_NOTES_v3.5.1.md`.
 
 ## Calidad
 - Backend: `mvn test`
