@@ -38,6 +38,7 @@ npm run test
 
 ## Variables
 - `VITE_API_BASE` (default: `http://localhost:8080/api`)
+- `VITE_API_TOKEN` (default: `dev-admin-token`)
 
 ## Flujo UX guiado (v3)
 1. `Preparar partida`: define jugador e importa libro (`file:///...pdf` o ruta local).

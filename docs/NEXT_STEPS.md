@@ -15,6 +15,9 @@
 - Modo de alto contraste para accesibilidad en interfaz jugador.
 - Prevencion de intentos duplicados en espacio docente para mantener metricas confiables.
 - Hardening base de importacion: validacion de firma PDF y control de contenido binario en TXT.
+- Auth API por roles con token (`student/teacher/admin`) para endpoints `/api/**`.
+- Rate limiting basico por IP para endpoints de escritura.
+- Filtros temporales (`from`, `to`) para dashboard y reporte docente.
 
 1. Persistencia productiva
 - Agregar estrategia de backup/restore y retencion.
@@ -22,7 +25,7 @@
 2. Seguridad y robustez
 - Endurecer validaciones de import (MIME real + escaneo anti-archivo malicioso). (avance parcial: firma/contenido base)
 - Validar rutas y endurecer manejo de errores.
-- Agregar rate limiting basico por IP/sesion.
+- Agregar rate limiting basico por IP/sesion. (implementado base por IP)
 
 3. Calidad de narrativa
 - Mejorar extraccion semantica de personajes/lugares sobre texto ya normalizado.
@@ -31,7 +34,7 @@
 
 4. Experiencia docente
 - Metricas de tiempo efectivo y abandono por actividad.
-- Segmentacion por cohorte (curso, nivel lector, fecha).
+- Segmentacion por cohorte (curso, nivel lector, fecha). (avance parcial: filtros por fecha en dashboard/csv)
 - Reporte PDF ademas de CSV.
 
 5. Plataforma

@@ -28,7 +28,19 @@ mvn spring-boot:run
 - `GET /api/teacher/classrooms/{classroomId}/assignments`
 - `POST /api/teacher/attempts/link`
 - `GET /api/teacher/classrooms/{classroomId}/dashboard`
-- `GET /api/teacher/classrooms/{classroomId}/report.csv`
+- `GET /api/teacher/classrooms/{classroomId}/dashboard?from=YYYY-MM-DD&to=YYYY-MM-DD`
+- `GET /api/teacher/classrooms/{classroomId}/report.csv?from=YYYY-MM-DD&to=YYYY-MM-DD`
+
+### Seguridad API (P0)
+- Header requerido para endpoints `/api/**` (excepto `/api/health`): `X-Api-Token`.
+- Tokens por rol configurables en `application.properties`:
+  - `app.security.student-token`
+  - `app.security.teacher-token`
+  - `app.security.admin-token`
+- Rate limit basico configurable:
+  - `app.rate-limit.window-seconds`
+  - `app.rate-limit.max-requests`
+  - `app.rate-limit.teacher-max-requests`
 
 ## Arquitectura
 - `domain`: entidades de juego.

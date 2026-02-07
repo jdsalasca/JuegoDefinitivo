@@ -19,11 +19,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -73,13 +75,21 @@ public class TeacherController {
     }
 
     @GetMapping("/classrooms/{classroomId}/dashboard")
-    public ClassroomDashboardResponse getDashboard(@PathVariable String classroomId) {
-        return workspaceService.getDashboard(classroomId);
+    public ClassroomDashboardResponse getDashboard(
+            @PathVariable String classroomId,
+            @RequestParam(required = false) LocalDate from,
+            @RequestParam(required = false) LocalDate to
+    ) {
+        return workspaceService.getDashboard(classroomId, from, to);
     }
 
     @GetMapping(value = "/classrooms/{classroomId}/report.csv", produces = "text/csv")
-    public ResponseEntity<byte[]> exportCsv(@PathVariable String classroomId) {
-        String csv = workspaceService.exportClassroomCsv(classroomId);
+    public ResponseEntity<byte[]> exportCsv(
+            @PathVariable String classroomId,
+            @RequestParam(required = false) LocalDate from,
+            @RequestParam(required = false) LocalDate to
+    ) {
+        String csv = workspaceService.exportClassroomCsv(classroomId, from, to);
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"classroom-" + classroomId + "-report.csv\"")
                 .contentType(new MediaType("text", "csv", StandardCharsets.UTF_8))

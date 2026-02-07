@@ -30,6 +30,8 @@ public interface TeacherWorkspaceRepository {
 
     List<AttemptRow> listAttemptsForClassroom(String classroomId);
 
+    List<AttemptRow> listAttemptsForClassroom(String classroomId, Instant fromInclusive, Instant toExclusive);
+
     boolean hasAnyClassroom();
 
     record ClassroomRow(String id, String name, String teacherName, Instant createdAt) {

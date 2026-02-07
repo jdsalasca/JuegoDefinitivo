@@ -10,12 +10,14 @@ import type {
 } from "./types";
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "http://localhost:8080/api";
+const API_TOKEN = import.meta.env.VITE_API_TOKEN ?? "dev-admin-token";
 export const API_BASE_URL = API_BASE;
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, {
     headers: {
       "Content-Type": "application/json",
+      "X-Api-Token": API_TOKEN,
     },
     ...init,
   });

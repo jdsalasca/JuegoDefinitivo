@@ -10,6 +10,8 @@ import com.juegodefinitivo.autobook.persistence.teacher.TeacherWorkspaceReposito
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -112,10 +114,14 @@ public class TeacherWorkspaceService {
     }
 
     public ClassroomDashboardResponse getDashboard(String classroomId) {
+        return getDashboard(classroomId, null, null);
+    }
+
+    public ClassroomDashboardResponse getDashboard(String classroomId, LocalDate from, LocalDate to) {
         TeacherWorkspaceRepository.ClassroomRow classroom = requireClassroom(classroomId);
         List<TeacherWorkspaceRepository.StudentRow> students = repository.listStudents(classroomId);
         List<TeacherWorkspaceRepository.AssignmentRow> assignments = repository.listAssignments(classroomId);
-        List<TeacherWorkspaceRepository.AttemptRow> attempts = repository.listAttemptsForClassroom(classroomId);
+        List<TeacherWorkspaceRepository.AttemptRow> attempts = loadAttempts(classroomId, from, to);
 
         List<StudentProgressView> progressViews = new ArrayList<>();
         for (TeacherWorkspaceRepository.StudentRow student : students) {
@@ -157,7 +163,11 @@ public class TeacherWorkspaceService {
     }
 
     public String exportClassroomCsv(String classroomId) {
-        ClassroomDashboardResponse dashboard = getDashboard(classroomId);
+        return exportClassroomCsv(classroomId, null, null);
+    }
+
+    public String exportClassroomCsv(String classroomId, LocalDate from, LocalDate to) {
+        ClassroomDashboardResponse dashboard = getDashboard(classroomId, from, to);
         StringBuilder csv = new StringBuilder();
         csv.append("classroom_id,classroom_name,teacher,student_id,student_name,attempts,completed_attempts,avg_score,avg_correct_answers,avg_progress_percent,dominant_difficulty")
                 .append('\n');
@@ -274,6 +284,18 @@ public class TeacherWorkspaceService {
                 .max(Map.Entry.comparingByValue())
                 .map(Map.Entry::getKey)
                 .orElse("UNKNOWN");
+    }
+
+    private List<TeacherWorkspaceRepository.AttemptRow> loadAttempts(String classroomId, LocalDate from, LocalDate to) {
+        if (from == null || to == null) {
+            return repository.listAttemptsForClassroom(classroomId);
+        }
+        if (to.isBefore(from)) {
+            throw new IllegalArgumentException("Rango de fechas invalido: 'to' no puede ser anterior a 'from'.");
+        }
+        Instant fromInclusive = from.atStartOfDay(ZoneId.systemDefault()).toInstant();
+        Instant toExclusive = to.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant();
+        return repository.listAttemptsForClassroom(classroomId, fromInclusive, toExclusive);
     }
 
     public record LegacyWorkspace(

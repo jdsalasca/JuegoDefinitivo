@@ -102,6 +102,17 @@ class TeacherControllerTest {
                 .andExpect(jsonPath("$.classroomId").value(classroomId))
                 .andExpect(jsonPath("$.studentProgress[0].studentId").value(studentId));
 
+        mockMvc.perform(get("/api/teacher/classrooms/" + classroomId + "/dashboard")
+                        .param("from", "2024-01-01")
+                        .param("to", "2024-12-31"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.classroomId").value(classroomId));
+
+        mockMvc.perform(get("/api/teacher/classrooms/" + classroomId + "/dashboard")
+                        .param("from", "2024-12-31")
+                        .param("to", "2024-01-01"))
+                .andExpect(status().isBadRequest());
+
         mockMvc.perform(get("/api/teacher/classrooms/" + classroomId + "/report.csv"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith("text/csv"))

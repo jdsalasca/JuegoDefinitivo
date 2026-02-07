@@ -35,6 +35,8 @@ Definir que implementar primero para maximizar valor comunitario (estudiantes, d
 4. Criterios de mercado trazados en `docs/MARKET_VALUE_REQUIREMENTS.md`.
 
 ## Active Delivery Slice (now)
-1. Hardening de import de libros.
-2. Anti-duplicados y consistencia de evidencia docente.
-3. UX infantil accesible (lectura amigable + alto contraste).
+1. Hardening de import de libros. (implementado base)
+2. Anti-duplicados y consistencia de evidencia docente. (implementado)
+3. UX infantil accesible (lectura amigable + alto contraste). (implementado)
+4. Auth por roles y rate limiting basico. (implementado base)
+5. Segmentacion temporal docente (`from`/`to`) en dashboard y CSV. (implementado base)
