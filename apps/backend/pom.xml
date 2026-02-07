@@ -12,7 +12,7 @@
 
     <groupId>com.juegodefinitivo</groupId>
     <artifactId>autobook-adventure</artifactId>
-    <version>3.0.0</version>
+    <version>3.4.0</version>
     <name>AutoBook Adventure Backend</name>
     <description>API para aventuras jugables basadas en libros</description>
 
