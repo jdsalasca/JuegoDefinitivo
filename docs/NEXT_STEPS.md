@@ -6,6 +6,10 @@
 - Telemetria UX basica con resumen por evento/etapa.
 - Pipeline de release con artefacto desktop + `latest.json`.
 - Pipeline base de normalizacion de texto (headers/footers repetidos, numeros de pagina, guiones de corte).
+- Inicio de separacion de experiencia por interfaz (`Jugador`, `Admin Docente`, `Debug`).
+- Historias de usuario iniciales en `docs/USER_STORIES.md`.
+- Navegacion por rutas por interfaz (`/`, `/admin`, `/debug`).
+- Suite unitaria frontend inicial con Vitest.
 
 1. Persistencia productiva
 - Migrar sesiones/inventario runtime (partidas de juego) a PostgreSQL con Flyway.

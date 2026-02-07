@@ -76,6 +76,36 @@ body {
   font-size: 0.85rem;
 }
 
+.interface-switch {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.interface-tab {
+  text-align: left;
+  border: 1px solid #9db8c0;
+  background: #f2f9fc;
+  color: var(--ink);
+  padding: 0.65rem 0.75rem;
+}
+
+.interface-tab span {
+  display: block;
+  font-weight: 700;
+}
+
+.interface-tab small {
+  display: block;
+  margin-top: 0.2rem;
+  color: var(--ink-soft);
+}
+
+.interface-tab.active {
+  border-color: var(--brand-strong);
+  background: linear-gradient(130deg, #d4ecf3 0%, #ecf7fa 100%);
+}
+
 .dot {
   width: 0.6rem;
   height: 0.6rem;
@@ -96,6 +126,10 @@ body {
   grid-template-columns: 340px 1fr;
   gap: 1rem;
   align-items: start;
+}
+
+.content-grid-admin {
+  grid-template-columns: 1fr;
 }
 
 .panel {
@@ -501,6 +535,10 @@ button:disabled {
 @media (max-width: 760px) {
   .app-shell {
     padding: 0.8rem;
+  }
+
+  .interface-switch {
+    grid-template-columns: 1fr;
   }
 
   .topbar {
