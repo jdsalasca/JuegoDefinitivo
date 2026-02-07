@@ -190,6 +190,24 @@ public class JdbcTeacherWorkspaceRepository implements TeacherWorkspaceRepositor
     }
 
     @Override
+    public boolean existsAttempt(String studentId, String assignmentId, String sessionId) {
+        Integer count = jdbcTemplate.queryForObject(
+                """
+                        SELECT COUNT(*)
+                        FROM attempts
+                        WHERE student_id = ?
+                          AND assignment_id = ?
+                          AND session_id = ?
+                        """,
+                Integer.class,
+                studentId,
+                assignmentId,
+                sessionId
+        );
+        return count != null && count > 0;
+    }
+
+    @Override
     public List<AttemptRow> listAttemptsForClassroom(String classroomId) {
         return jdbcTemplate.query(
                 """

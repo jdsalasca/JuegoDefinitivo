@@ -12,6 +12,8 @@
 - Suite unitaria frontend inicial con Vitest.
 - Persistencia runtime de sesiones de juego en DB (`game_sessions`) con Flyway.
 - Modo lectura amigable para ninos (tipografia y controles ampliados en interfaz jugador).
+- Modo de alto contraste para accesibilidad en interfaz jugador.
+- Prevencion de intentos duplicados en espacio docente para mantener metricas confiables.
 
 1. Persistencia productiva
 - Agregar estrategia de backup/restore y retencion.

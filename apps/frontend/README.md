@@ -14,6 +14,10 @@ La seleccion de interfaz desde la barra superior actualiza la URL.
 - Amplia tipografia, controles y contraste para lectura infantil.
 - Se guarda preferencia local en `autobook:kidMode`.
 
+## Alto contraste
+- Disponible en interfaz `Jugador` para mejorar legibilidad.
+- Se guarda preferencia local en `autobook:highContrast`.
+
 ## Setup
 ```bash
 cd apps/frontend

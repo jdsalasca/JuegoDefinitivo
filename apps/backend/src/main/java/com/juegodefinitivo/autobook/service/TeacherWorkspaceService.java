@@ -97,12 +97,16 @@ public class TeacherWorkspaceService {
         if (sessionId == null || sessionId.isBlank()) {
             throw new IllegalArgumentException("sessionId es requerido.");
         }
+        String normalizedSessionId = sessionId.trim();
+        if (repository.existsAttempt(studentId, assignmentId, normalizedSessionId)) {
+            throw new IllegalArgumentException("Ese intento ya esta vinculado para este estudiante y asignacion.");
+        }
 
         repository.insertAttempt(new TeacherWorkspaceRepository.AttemptRow(
                 newId("att_"),
                 studentId,
                 assignmentId,
-                sessionId.trim(),
+                normalizedSessionId,
                 Instant.now()
         ));
     }

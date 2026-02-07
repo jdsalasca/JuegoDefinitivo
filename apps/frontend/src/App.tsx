@@ -75,6 +75,7 @@ const ACTIONS: ActionDescriptor[] = [
 
 const SESSION_KEY = "autobook:lastSessionId";
 const KID_MODE_KEY = "autobook:kidMode";
+const HIGH_CONTRAST_KEY = "autobook:highContrast";
 const EMPTY_TELEMETRY: TelemetrySummary = {
   totalEvents: 0,
   byEvent: {},
@@ -128,6 +129,7 @@ function App() {
   const [error, setError] = useState<string>("");
   const [activeInterface, setActiveInterface] = useState<InterfaceMode>(() => modeFromPath(window.location.pathname));
   const [kidMode, setKidMode] = useState<boolean>(false);
+  const [highContrast, setHighContrast] = useState<boolean>(false);
 
   const activeAction = useMemo(
     () => ACTIONS.find((action) => action.key === selectedAction) ?? ACTIONS[0],
@@ -246,6 +248,7 @@ function App() {
 
   useEffect(() => {
     setKidMode(localStorage.getItem(KID_MODE_KEY) === "true");
+    setHighContrast(localStorage.getItem(HIGH_CONTRAST_KEY) === "true");
   }, []);
 
   useEffect(() => {
@@ -326,6 +329,14 @@ function App() {
     });
   }
 
+  function toggleHighContrast() {
+    setHighContrast((current) => {
+      const next = !current;
+      localStorage.setItem(HIGH_CONTRAST_KEY, next ? "true" : "false");
+      return next;
+    });
+  }
+
   function resolveItemId() {
     if (selectedItemId) {
       return selectedItemId;
@@ -364,7 +375,7 @@ function App() {
   }
 
   return (
-    <main className={`app-shell ${kidMode ? "kid-mode" : ""}`}>
+    <main className={`app-shell ${kidMode ? "kid-mode" : ""} ${highContrast ? "high-contrast" : ""}`}>
       <header className="topbar">
         <div>
           <p className="eyebrow">Lectura interactiva</p>
@@ -375,9 +386,14 @@ function App() {
         </div>
         <div className="topbar-actions">
           {activeInterface === "player" && (
-            <button type="button" className="kid-toggle" onClick={toggleKidMode}>
-              {kidMode ? "Modo lectura normal" : "Modo lectura amigable"}
-            </button>
+            <>
+              <button type="button" className="kid-toggle" onClick={toggleKidMode}>
+                {kidMode ? "Modo lectura normal" : "Modo lectura amigable"}
+              </button>
+              <button type="button" className="kid-toggle contrast-toggle" onClick={toggleHighContrast}>
+                {highContrast ? "Contraste normal" : "Alto contraste"}
+              </button>
+            </>
           )}
           <div className="topbar-status">
             <span className={`dot ${loading ? "busy" : "idle"}`} />

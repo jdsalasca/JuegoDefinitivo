@@ -87,6 +87,16 @@ class TeacherControllerTest {
                         ))))
                 .andExpect(status().isOk());
 
+        mockMvc.perform(post("/api/teacher/attempts/link")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of(
+                                "studentId", studentId,
+                                "assignmentId", assignmentId,
+                                "sessionId", sessionId
+                        ))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Ese intento ya esta vinculado para este estudiante y asignacion."));
+
         mockMvc.perform(get("/api/teacher/classrooms/" + classroomId + "/dashboard"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.classroomId").value(classroomId))

@@ -26,6 +26,8 @@ public interface TeacherWorkspaceRepository {
 
     void insertAttempt(AttemptRow attempt);
 
+    boolean existsAttempt(String studentId, String assignmentId, String sessionId);
+
     List<AttemptRow> listAttemptsForClassroom(String classroomId);
 
     boolean hasAnyClassroom();

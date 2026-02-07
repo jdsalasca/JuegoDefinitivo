@@ -45,5 +45,6 @@ mvn spring-boot:run
 - El pipeline narrativo incluye normalizacion de texto, memoria de entidades, grafo de relaciones y nivel cognitivo por escena.
 - Persistencia docente sobre JDBC + Flyway (`classrooms`, `students`, `assignments`, `attempts`).
 - Persistencia runtime de sesiones de juego sobre JDBC + Flyway (`game_sessions`).
+- Vinculacion de intentos docente protegida contra duplicados (`student_id + assignment_id + session_id`).
 - Default local con H2 file DB; PostgreSQL habilitado por variables de entorno Spring datasource.
 - Importacion de libros restringida a `.txt` y `.pdf` con limite configurable (`app.import.max-bytes`, default 25MB).
