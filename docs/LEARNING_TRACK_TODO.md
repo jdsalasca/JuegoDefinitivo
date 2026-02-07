@@ -26,7 +26,7 @@ Subir la calidad pedagógica y narrativa del producto para que los libros se tra
 ### Fase 4 - Calidad y benchmark (en progreso)
 - [x] Evaluador de calidad narrativa con score compuesto.
 - [x] Test benchmark minimo en CI.
-- [ ] Dataset de benchmark con 10+ libros reales.
+- [x] Dataset de benchmark con 10+ muestras narrativas.
 - [ ] Reporte automatizado por release con score comparativo.
 
 ### Fase 5 - Release profesional
