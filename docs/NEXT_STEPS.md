@@ -12,7 +12,7 @@
 - Agregar estrategia de backup/restore y retencion.
 
 2. Seguridad y robustez
-- Limitar tamano y tipo de archivos importados.
+- Endurecer validaciones de import (MIME real + escaneo anti-archivo malicioso).
 - Validar rutas y endurecer manejo de errores.
 - Agregar rate limiting basico por IP/sesion.
 

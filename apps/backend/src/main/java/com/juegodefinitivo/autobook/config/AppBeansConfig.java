@@ -68,6 +68,6 @@ public class AppBeansConfig {
 
     @Bean
     public BookImportService bookImportService(AppConfig config) {
-        return new BookImportService(config.booksDir());
+        return new BookImportService(config.booksDir(), config.maxImportBytes());
     }
 }

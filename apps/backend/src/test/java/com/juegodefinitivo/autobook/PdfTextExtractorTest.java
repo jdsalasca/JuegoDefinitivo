@@ -29,13 +29,25 @@ class PdfTextExtractorTest {
                 stream.showText("El caballero aprende a escuchar su corazon.");
                 stream.endText();
             }
+            PDPage page2 = new PDPage(PDRectangle.LETTER);
+            document.addPage(page2);
+            try (PDPageContentStream stream = new PDPageContentStream(document, page2)) {
+                stream.beginText();
+                stream.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA), 12);
+                stream.newLineAtOffset(100, 700);
+                stream.showText("En la segunda pagina reflexiona y continua.");
+                stream.endText();
+            }
             document.save(pdf.toFile());
         }
 
         PdfTextExtractor extractor = new PdfTextExtractor();
-        String text = extractor.extract(pdf).toLowerCase();
+        String text = extractor.extract(pdf);
+        String normalized = text.toLowerCase();
 
-        assertTrue(text.contains("caballero"));
-        assertTrue(text.contains("corazon"));
+        assertTrue(normalized.contains("caballero"));
+        assertTrue(normalized.contains("corazon"));
+        assertTrue(normalized.contains("segunda pagina"));
+        assertTrue(text.contains("\f"));
     }
 }
