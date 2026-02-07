@@ -17,6 +17,7 @@ import com.juegodefinitivo.autobook.ingest.BookImportService;
 import com.juegodefinitivo.autobook.ingest.BookLoaderService;
 import com.juegodefinitivo.autobook.narrative.NarrativeBuilder;
 import com.juegodefinitivo.autobook.narrative.NarrativeScene;
+import com.juegodefinitivo.autobook.persistence.game.GameSessionRuntimeRepository;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
@@ -41,6 +42,7 @@ public class GameFacadeService {
     private final GameEngineService engine;
     private final AutoplayService autoplayService;
     private final NarrativeGraphService narrativeGraphService;
+    private final GameSessionRuntimeRepository runtimeRepository;
 
     private final Map<String, SessionState> sessions = new ConcurrentHashMap<>();
 
@@ -52,7 +54,8 @@ public class GameFacadeService {
             NarrativeBuilder narrativeBuilder,
             GameEngineService engine,
             AutoplayService autoplayService,
-            NarrativeGraphService narrativeGraphService
+            NarrativeGraphService narrativeGraphService,
+            GameSessionRuntimeRepository runtimeRepository
     ) {
         this.config = config;
         this.catalog = catalog;
@@ -62,6 +65,7 @@ public class GameFacadeService {
         this.engine = engine;
         this.autoplayService = autoplayService;
         this.narrativeGraphService = narrativeGraphService;
+        this.runtimeRepository = runtimeRepository;
     }
 
     public void bootstrapSamples() {
@@ -104,6 +108,7 @@ public class GameFacadeService {
             boot = absorbEntities(id, boot, scenes.get(0));
         }
         sessions.put(id, boot);
+        persistRuntime(id, sessions.get(id));
         return toResponse(id, sessions.get(id));
     }
 
@@ -149,6 +154,7 @@ public class GameFacadeService {
 
         SessionState updated = state.withMessage(outcome.message());
         sessions.put(sessionId, updated);
+        persistRuntime(sessionId, updated);
         return toResponse(sessionId, updated);
     }
 
@@ -193,6 +199,7 @@ public class GameFacadeService {
             sessions.put(sessionId, state);
         }
 
+        persistRuntime(sessionId, state);
         return toResponse(sessionId, state);
     }
 
@@ -210,9 +217,39 @@ public class GameFacadeService {
     private SessionState requireSession(String id) {
         SessionState state = sessions.get(id);
         if (state == null) {
+            state = runtimeRepository.load(id)
+                    .map(this::toSessionState)
+                    .orElse(null);
+            if (state != null) {
+                sessions.put(id, state);
+            }
+        }
+        if (state == null) {
             throw new IllegalArgumentException("Sesion no encontrada.");
         }
         return state;
+    }
+
+    private SessionState toSessionState(GameSessionRuntimeRepository.StoredSession stored) {
+        Path path = Path.of(stored.session().getBookPath()).toAbsolutePath().normalize();
+        List<NarrativeScene> scenes = narrativeBuilder.build(loader.loadScenes(path, config.sceneMaxChars(), config.sceneLinesPerChunk()));
+        if (scenes.isEmpty()) {
+            throw new IllegalStateException("La sesion almacenada no tiene escenas disponibles.");
+        }
+        int maxSceneIndex = Math.max(0, scenes.size() - 1);
+        if (stored.session().isCompleted()) {
+            stored.session().setCurrentScene(scenes.size());
+        } else {
+            stored.session().setCurrentScene(Math.min(stored.session().getCurrentScene(), maxSceneIndex));
+        }
+        return new SessionState(
+                stored.session(),
+                scenes,
+                stored.lastMessage(),
+                new LinkedHashMap<>(stored.narrativeMemory()),
+                stored.challengeAttempts(),
+                stored.challengeCorrect()
+        );
     }
 
     private GameStateResponse toResponse(String id, SessionState state) {
@@ -269,6 +306,17 @@ public class GameFacadeService {
         }
         narrativeGraphService.record(sessionId, scene.entities());
         return state.withMemory(memory);
+    }
+
+    private void persistRuntime(String sessionId, SessionState state) {
+        runtimeRepository.save(
+                sessionId,
+                state.session(),
+                state.narrativeMemory(),
+                state.challengeAttempts(),
+                state.challengeCorrect(),
+                state.lastMessage()
+        );
     }
 
     private void copySampleIfMissing(String resource, String name) {

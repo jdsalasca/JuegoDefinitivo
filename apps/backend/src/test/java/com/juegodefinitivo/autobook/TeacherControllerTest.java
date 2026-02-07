@@ -87,15 +87,45 @@ class TeacherControllerTest {
                         ))))
                 .andExpect(status().isOk());
 
+        mockMvc.perform(post("/api/teacher/attempts/link")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of(
+                                "studentId", studentId,
+                                "assignmentId", assignmentId,
+                                "sessionId", sessionId
+                        ))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Ese intento ya esta vinculado para este estudiante y asignacion."));
+
         mockMvc.perform(get("/api/teacher/classrooms/" + classroomId + "/dashboard"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.classroomId").value(classroomId))
+                .andExpect(jsonPath("$.activeAttempts").isNumber())
+                .andExpect(jsonPath("$.completedAttempts").isNumber())
+                .andExpect(jsonPath("$.abandonmentRatePercent").isNumber())
+                .andExpect(jsonPath("$.totalEffectiveReadingMinutes").isNumber())
+                .andExpect(jsonPath("$.averageEffectiveMinutesPerAttempt").isNumber())
+                .andExpect(jsonPath("$.abandonmentByActivity").isArray())
+                .andExpect(jsonPath("$.studentProgress[0].averageEffectiveMinutes").isNumber())
                 .andExpect(jsonPath("$.studentProgress[0].studentId").value(studentId));
+
+        mockMvc.perform(get("/api/teacher/classrooms/" + classroomId + "/dashboard")
+                        .param("from", "2024-01-01")
+                        .param("to", "2024-12-31"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.classroomId").value(classroomId));
+
+        mockMvc.perform(get("/api/teacher/classrooms/" + classroomId + "/dashboard")
+                        .param("from", "2024-12-31")
+                        .param("to", "2024-01-01"))
+                .andExpect(status().isBadRequest());
 
         mockMvc.perform(get("/api/teacher/classrooms/" + classroomId + "/report.csv"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith("text/csv"))
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("student_id")));
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("student_id")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("avg_effective_minutes")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("abandonment_activity")));
     }
 }
 

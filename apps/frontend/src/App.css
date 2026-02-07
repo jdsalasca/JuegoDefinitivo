@@ -76,6 +76,62 @@ body {
   font-size: 0.85rem;
 }
 
+.topbar-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.kid-toggle {
+  width: auto;
+  border: 1px solid #245a6d;
+  background: linear-gradient(150deg, #2f87a6 0%, #245a6d 100%);
+  color: #fff;
+  padding: 0.45rem 0.7rem;
+  font-size: 0.82rem;
+}
+
+.contrast-toggle {
+  border-color: #18232a;
+  background: linear-gradient(150deg, #2e3f4a 0%, #18232a 100%);
+}
+
+.kid-helper {
+  margin: 0 0 0.7rem;
+  color: #1d4f5f;
+  font-weight: 700;
+}
+
+.interface-switch {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.interface-tab {
+  text-align: left;
+  border: 1px solid #9db8c0;
+  background: #f2f9fc;
+  color: var(--ink);
+  padding: 0.65rem 0.75rem;
+}
+
+.interface-tab span {
+  display: block;
+  font-weight: 700;
+}
+
+.interface-tab small {
+  display: block;
+  margin-top: 0.2rem;
+  color: var(--ink-soft);
+}
+
+.interface-tab.active {
+  border-color: var(--brand-strong);
+  background: linear-gradient(130deg, #d4ecf3 0%, #ecf7fa 100%);
+}
+
 .dot {
   width: 0.6rem;
   height: 0.6rem;
@@ -96,6 +152,10 @@ body {
   grid-template-columns: 340px 1fr;
   gap: 1rem;
   align-items: start;
+}
+
+.content-grid-admin {
+  grid-template-columns: 1fr;
 }
 
 .panel {
@@ -468,6 +528,76 @@ button:disabled {
   margin: 0;
 }
 
+.kid-mode {
+  font-size: 1.07rem;
+}
+
+.kid-mode .panel {
+  border-width: 3px;
+}
+
+.kid-mode .scene-text {
+  font-size: 1.18rem;
+  line-height: 1.65;
+}
+
+.kid-mode input,
+.kid-mode select,
+.kid-mode button {
+  font-size: 1rem;
+  padding: 0.72rem 0.78rem;
+}
+
+.kid-mode .action-label {
+  font-size: 1.02rem;
+}
+
+.kid-mode .action-desc {
+  font-size: 0.92rem;
+}
+
+.high-contrast {
+  --bg: radial-gradient(circle at 0 0, #111 0%, #1a1a1a 100%);
+  --surface: #0f1315;
+  --surface-strong: #101819;
+  --line: #f4f4f4;
+  --line-soft: #d7e3e6;
+  --ink: #ffffff;
+  --ink-soft: #ecf5f7;
+  --brand: #18b6d9;
+  --brand-strong: #0e8097;
+  --accent: #ff8e42;
+  --ok: #4be49f;
+  --warn: #ff6b6b;
+  --shadow: 0 12px 26px rgba(0, 0, 0, 0.55);
+}
+
+.high-contrast .topbar,
+.high-contrast .hud,
+.high-contrast .autoplay-panel,
+.high-contrast .journey-card,
+.high-contrast .feedback-strip,
+.high-contrast .action-tile,
+.high-contrast .metric,
+.high-contrast .mini-panel {
+  background: #121c1f;
+}
+
+.high-contrast input,
+.high-contrast select {
+  background: #0e1416;
+  color: #fff;
+  border-color: #9dc2ce;
+}
+
+.high-contrast .scene-card {
+  border-color: #cce8f0;
+}
+
+.high-contrast .progress-bar {
+  background: #26343a;
+}
+
 .error {
   color: var(--warn);
   font-weight: 700;
@@ -503,9 +633,17 @@ button:disabled {
     padding: 0.8rem;
   }
 
+  .interface-switch {
+    grid-template-columns: 1fr;
+  }
+
   .topbar {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .topbar-actions {
+    justify-content: space-between;
   }
 
   .row {

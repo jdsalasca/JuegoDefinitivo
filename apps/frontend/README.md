@@ -2,6 +2,22 @@
 
 Frontend React + TypeScript para jugar historias del backend.
 
+## Interfaces por rol
+- `Jugador`: ruta `/` (o `/player`)
+- `Admin Docente`: ruta `/admin`
+- `Debug`: ruta `/debug`
+
+La seleccion de interfaz desde la barra superior actualiza la URL.
+
+## Modo lectura amigable
+- Disponible en interfaz `Jugador`.
+- Amplia tipografia, controles y contraste para lectura infantil.
+- Se guarda preferencia local en `autobook:kidMode`.
+
+## Alto contraste
+- Disponible en interfaz `Jugador` para mejorar legibilidad.
+- Se guarda preferencia local en `autobook:highContrast`.
+
 ## Setup
 ```bash
 cd apps/frontend
@@ -15,8 +31,18 @@ npm run dev
 npm run build
 ```
 
+## Tests unitarios
+```bash
+npm run test
+```
+
 ## Variables
 - `VITE_API_BASE` (default: `http://localhost:8080/api`)
+- `VITE_API_TOKEN` (default: `dev-admin-token`)
+
+Nota:
+- El frontend soporta `Authorization: Bearer <token>` (login API en panel admin/debug).
+- Como fallback, si no hay bearer activo usa `X-Api-Token`.
 
 ## Flujo UX guiado (v3)
 1. `Preparar partida`: define jugador e importa libro (`file:///...pdf` o ruta local).
@@ -48,6 +74,7 @@ npm run build
 - Crear asignaciones de lectura.
 - Vincular la sesion de juego actual a estudiante + asignacion.
 - Ver dashboard de progreso por estudiante.
+- Filtrar dashboard por periodo y descargar CSV con el mismo rango.
 - Descargar reporte CSV de aula.
 
 ## E2E

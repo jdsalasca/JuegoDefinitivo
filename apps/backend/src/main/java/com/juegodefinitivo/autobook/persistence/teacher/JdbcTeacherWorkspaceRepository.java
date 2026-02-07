@@ -190,17 +190,53 @@ public class JdbcTeacherWorkspaceRepository implements TeacherWorkspaceRepositor
     }
 
     @Override
-    public List<AttemptRow> listAttemptsForClassroom(String classroomId) {
-        return jdbcTemplate.query(
+    public boolean existsAttempt(String studentId, String assignmentId, String sessionId) {
+        Integer count = jdbcTemplate.queryForObject(
                 """
-                        SELECT at.id, at.student_id, at.assignment_id, at.session_id, at.created_at
-                        FROM attempts at
-                        INNER JOIN students st ON st.id = at.student_id
-                        INNER JOIN assignments ag ON ag.id = at.assignment_id
-                        WHERE st.classroom_id = ?
-                          AND ag.classroom_id = ?
-                        ORDER BY at.created_at
+                        SELECT COUNT(*)
+                        FROM attempts
+                        WHERE student_id = ?
+                          AND assignment_id = ?
+                          AND session_id = ?
                         """,
+                Integer.class,
+                studentId,
+                assignmentId,
+                sessionId
+        );
+        return count != null && count > 0;
+    }
+
+    @Override
+    public List<AttemptRow> listAttemptsForClassroom(String classroomId) {
+        return listAttemptsForClassroom(classroomId, null, null);
+    }
+
+    @Override
+    public List<AttemptRow> listAttemptsForClassroom(String classroomId, Instant fromInclusive, Instant toExclusive) {
+        boolean filtered = fromInclusive != null && toExclusive != null;
+        return jdbcTemplate.query(
+                filtered
+                        ? """
+                            SELECT at.id, at.student_id, at.assignment_id, at.session_id, at.created_at
+                            FROM attempts at
+                            INNER JOIN students st ON st.id = at.student_id
+                            INNER JOIN assignments ag ON ag.id = at.assignment_id
+                            WHERE st.classroom_id = ?
+                              AND ag.classroom_id = ?
+                              AND at.created_at >= ?
+                              AND at.created_at < ?
+                            ORDER BY at.created_at
+                          """
+                        : """
+                            SELECT at.id, at.student_id, at.assignment_id, at.session_id, at.created_at
+                            FROM attempts at
+                            INNER JOIN students st ON st.id = at.student_id
+                            INNER JOIN assignments ag ON ag.id = at.assignment_id
+                            WHERE st.classroom_id = ?
+                              AND ag.classroom_id = ?
+                            ORDER BY at.created_at
+                          """,
                 (rs, rowNum) -> new AttemptRow(
                         rs.getString("id"),
                         rs.getString("student_id"),
@@ -208,8 +244,9 @@ public class JdbcTeacherWorkspaceRepository implements TeacherWorkspaceRepositor
                         rs.getString("session_id"),
                         rs.getTimestamp("created_at").toInstant()
                 ),
-                classroomId,
-                classroomId
+                filtered
+                        ? new Object[] {classroomId, classroomId, Timestamp.from(fromInclusive), Timestamp.from(toExclusive)}
+                        : new Object[] {classroomId, classroomId}
         );
     }
 

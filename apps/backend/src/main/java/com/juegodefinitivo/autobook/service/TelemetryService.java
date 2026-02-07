@@ -14,6 +14,7 @@ import java.nio.file.StandardOpenOption;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.LongAdder;
@@ -35,9 +36,13 @@ public class TelemetryService {
         if (event == null || event.eventName() == null || event.eventName().isBlank()) {
             throw new IllegalArgumentException("eventName es requerido.");
         }
+        if (event.elapsedMs() != null && event.elapsedMs() < 0) {
+            throw new IllegalArgumentException("elapsedMs no puede ser negativo.");
+        }
 
-        String eventName = event.eventName().trim();
-        String stage = event.stage() == null || event.stage().isBlank() ? "unknown" : event.stage().trim();
+        String eventName = normalize(event.eventName());
+        String stage = event.stage() == null || event.stage().isBlank() ? "unknown" : normalize(event.stage());
+        long elapsedMs = event.elapsedMs() == null ? 0L : event.elapsedMs();
         byEvent.computeIfAbsent(eventName, key -> new LongAdder()).increment();
         byStage.computeIfAbsent(stage, key -> new LongAdder()).increment();
 
@@ -46,9 +51,13 @@ public class TelemetryService {
         line.put("sessionId", event.sessionId());
         line.put("eventName", eventName);
         line.put("stage", stage);
-        line.put("elapsedMs", event.elapsedMs());
+        line.put("elapsedMs", elapsedMs);
         line.put("metadata", event.metadata() == null ? Map.of() : event.metadata());
         append(line);
+    }
+
+    private String normalize(String value) {
+        return value.trim().toLowerCase(Locale.ROOT);
     }
 
     public TelemetrySummaryResponse summary() {

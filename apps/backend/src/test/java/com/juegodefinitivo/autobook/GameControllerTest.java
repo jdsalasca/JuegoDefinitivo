@@ -87,4 +87,52 @@ class GameControllerTest {
                 .andExpect(jsonPath("$.totalEvents").isNumber())
                 .andExpect(jsonPath("$.byEvent.action_executed").exists());
     }
+
+    @Test
+    void shouldRejectTelemetryWhenElapsedIsNegative() throws Exception {
+        mockMvc.perform(post("/api/telemetry/events")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new TelemetryEventRequest(
+                                "session-invalid",
+                                "action_executed",
+                                "play",
+                                -5L,
+                                java.util.Map.of()
+                        ))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("elapsedMs no puede ser negativo."));
+    }
+
+    @Test
+    void shouldNormalizeTelemetryEventAndStageNames() throws Exception {
+        String eventName = " normalize_case_event ";
+        String stageName = " normalize_stage ";
+
+        mockMvc.perform(post("/api/telemetry/events")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new TelemetryEventRequest(
+                                "session-normalized",
+                                eventName,
+                                stageName,
+                                100L,
+                                java.util.Map.of()
+                        ))))
+                .andExpect(status().isAccepted());
+
+        mockMvc.perform(post("/api/telemetry/events")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new TelemetryEventRequest(
+                                "session-normalized",
+                                "normalize_case_event",
+                                "normalize_stage",
+                                null,
+                                java.util.Map.of()
+                        ))))
+                .andExpect(status().isAccepted());
+
+        mockMvc.perform(get("/api/telemetry/summary"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.byEvent.normalize_case_event").value(2))
+                .andExpect(jsonPath("$.byStage.normalize_stage").value(2));
+    }
 }

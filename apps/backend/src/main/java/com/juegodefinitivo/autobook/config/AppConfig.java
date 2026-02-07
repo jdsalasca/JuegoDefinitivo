@@ -7,6 +7,7 @@ public record AppConfig(
         Path dataDir,
         Path saveFile,
         Path booksDir,
+        long maxImportBytes,
         int sceneMaxChars,
         int sceneLinesPerChunk
 ) {

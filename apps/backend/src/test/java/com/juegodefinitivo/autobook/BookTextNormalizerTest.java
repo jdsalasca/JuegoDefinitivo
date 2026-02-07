@@ -47,5 +47,22 @@ class BookTextNormalizerTest {
 
         assertTrue(clean.contains("historia para ninos."));
     }
+
+    @Test
+    void shouldRemoveIndexLinesAndJoinWrappedParagraphs() {
+        String raw = """
+                Capitulo 1 ............. 9
+                Capitulo 2 ............. 15
+                El caballero miro el castillo
+                y decidio continuar con cautela
+                porque la noche era fria.
+                """;
+
+        String clean = normalizer.normalize(raw);
+
+        assertFalse(clean.contains("Capitulo 1"));
+        assertFalse(clean.contains("Capitulo 2"));
+        assertTrue(clean.contains("El caballero miro el castillo y decidio continuar con cautela porque la noche era fria."));
+    }
 }
 

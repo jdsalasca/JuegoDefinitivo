@@ -6,14 +6,17 @@ import {
   autoplay,
   createAssignment,
   createClassroom,
-  fetchClassroomDashboard,
+  fetchClassroomDashboardByRange,
   fetchTelemetrySummary,
   importBook,
+  login as apiLogin,
   linkAttempt,
   listAssignments,
   listBooks,
   listClassrooms,
   listStudents,
+  clearAccessToken,
+  hasAccessToken,
   loadNarrativeGraph,
   loadState,
   sendAction,
@@ -26,10 +29,12 @@ import type {
   Classroom,
   ClassroomDashboard,
   GameState,
+  LoginResponse,
   NarrativeGraph,
   StudentRecord,
   TelemetrySummary,
 } from "./types";
+import { INTERFACE_MODES, modeFromPath, pathFromMode, type InterfaceMode } from "./interfaceMode";
 
 type ActionKind = "TALK" | "EXPLORE" | "CHALLENGE" | "USE_ITEM";
 
@@ -73,6 +78,8 @@ const ACTIONS: ActionDescriptor[] = [
 ];
 
 const SESSION_KEY = "autobook:lastSessionId";
+const KID_MODE_KEY = "autobook:kidMode";
+const HIGH_CONTRAST_KEY = "autobook:highContrast";
 const EMPTY_TELEMETRY: TelemetrySummary = {
   totalEvents: 0,
   byEvent: {},
@@ -89,6 +96,12 @@ const EMPTY_DASHBOARD: ClassroomDashboard = {
   teacherName: "",
   students: 0,
   assignments: 0,
+  activeAttempts: 0,
+  completedAttempts: 0,
+  abandonmentRatePercent: 0,
+  totalEffectiveReadingMinutes: 0,
+  averageEffectiveMinutesPerAttempt: 0,
+  abandonmentByActivity: [],
   studentProgress: [],
 };
 
@@ -117,6 +130,11 @@ function App() {
   const [newStudentName, setNewStudentName] = useState<string>("Estudiante");
   const [newAssignmentTitle, setNewAssignmentTitle] = useState<string>("Lectura semanal");
   const [newAssignmentBookPath, setNewAssignmentBookPath] = useState<string>("");
+  const [dashboardFrom, setDashboardFrom] = useState<string>("");
+  const [dashboardTo, setDashboardTo] = useState<string>("");
+  const [authUsername, setAuthUsername] = useState<string>("teacher");
+  const [authPassword, setAuthPassword] = useState<string>("teacher-pass");
+  const [authStatus, setAuthStatus] = useState<string>(hasAccessToken() ? "Bearer activo" : "Modo legacy");
   const [dashboard, setDashboard] = useState<ClassroomDashboard>(EMPTY_DASHBOARD);
   const [state, setState] = useState<GameState | null>(null);
   const [graph, setGraph] = useState<NarrativeGraph>(EMPTY_GRAPH);
@@ -124,6 +142,9 @@ function App() {
   const [telemetry, setTelemetry] = useState<TelemetrySummary>(EMPTY_TELEMETRY);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
+  const [activeInterface, setActiveInterface] = useState<InterfaceMode>(() => modeFromPath(window.location.pathname));
+  const [kidMode, setKidMode] = useState<boolean>(false);
+  const [highContrast, setHighContrast] = useState<boolean>(false);
 
   const activeAction = useMemo(
     () => ACTIONS.find((action) => action.key === selectedAction) ?? ACTIONS[0],
@@ -186,7 +207,7 @@ function App() {
     const [nextStudents, nextAssignments, nextDashboard] = await Promise.all([
       listStudents(classroomId),
       listAssignments(classroomId),
-      fetchClassroomDashboard(classroomId),
+      fetchClassroomDashboardByRange(classroomId, dashboardFrom || undefined, dashboardTo || undefined),
     ]);
     setStudents(nextStudents);
     setAssignments(nextAssignments);
@@ -197,7 +218,7 @@ function App() {
     if (!selectedAssignmentId && nextAssignments.length > 0) {
       setSelectedAssignmentId(nextAssignments[0].id);
     }
-  }, [selectedAssignmentId, selectedStudentId]);
+  }, [dashboardFrom, dashboardTo, selectedAssignmentId, selectedStudentId]);
 
   const refreshTelemetry = useCallback(async () => {
     try {
@@ -241,6 +262,11 @@ function App() {
   }, []);
 
   useEffect(() => {
+    setKidMode(localStorage.getItem(KID_MODE_KEY) === "true");
+    setHighContrast(localStorage.getItem(HIGH_CONTRAST_KEY) === "true");
+  }, []);
+
+  useEffect(() => {
     refreshGraph(state?.sessionId).catch(() => {
       setGraph(EMPTY_GRAPH);
     });
@@ -253,6 +279,12 @@ function App() {
       setDashboard(EMPTY_DASHBOARD);
     });
   }, [selectedClassroomId, refreshClassroomData]);
+
+  useEffect(() => {
+    const onPopState = () => setActiveInterface(modeFromPath(window.location.pathname));
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
 
   async function withRequest(
     task: () => Promise<void>,
@@ -296,11 +328,40 @@ function App() {
     localStorage.setItem(SESSION_KEY, sessionId);
   }
 
+  function changeInterface(mode: InterfaceMode) {
+    setActiveInterface(mode);
+    const targetPath = pathFromMode(mode);
+    if (window.location.pathname !== targetPath) {
+      window.history.pushState({}, "", targetPath);
+    }
+  }
+
+  function toggleKidMode() {
+    setKidMode((current) => {
+      const next = !current;
+      localStorage.setItem(KID_MODE_KEY, next ? "true" : "false");
+      return next;
+    });
+  }
+
+  function toggleHighContrast() {
+    setHighContrast((current) => {
+      const next = !current;
+      localStorage.setItem(HIGH_CONTRAST_KEY, next ? "true" : "false");
+      return next;
+    });
+  }
+
   function resolveItemId() {
     if (selectedItemId) {
       return selectedItemId;
     }
     return inventoryEntries.length > 0 ? inventoryEntries[0][0] : "";
+  }
+
+  async function executeApiLogin() {
+    const result: LoginResponse = await apiLogin(authUsername, authPassword);
+    setAuthStatus(`Bearer activo (${result.role})`);
   }
 
   function canSendAction(): boolean {
@@ -334,7 +395,7 @@ function App() {
   }
 
   return (
-    <main className="app-shell">
+    <main className={`app-shell ${kidMode ? "kid-mode" : ""} ${highContrast ? "high-contrast" : ""}`}>
       <header className="topbar">
         <div>
           <p className="eyebrow">Lectura interactiva</p>
@@ -343,14 +404,78 @@ function App() {
             Flujo guiado: importa un libro, inicia sesion y juega escena por escena.
           </p>
         </div>
-        <div className="topbar-status">
-          <span className={`dot ${loading ? "busy" : "idle"}`} />
-          <span>{loading ? "Procesando" : "Disponible"}</span>
+        <div className="topbar-actions">
+          {activeInterface === "player" && (
+            <>
+              <button type="button" className="kid-toggle" onClick={toggleKidMode}>
+                {kidMode ? "Modo lectura normal" : "Modo lectura amigable"}
+              </button>
+              <button type="button" className="kid-toggle contrast-toggle" onClick={toggleHighContrast}>
+                {highContrast ? "Contraste normal" : "Alto contraste"}
+              </button>
+            </>
+          )}
+          {(activeInterface === "admin" || activeInterface === "debug") && (
+            <article className="mini-panel">
+              <h4>Auth API</h4>
+              <label>
+                Usuario
+                <input value={authUsername} onChange={(e) => setAuthUsername(e.target.value)} />
+              </label>
+              <label>
+                Password
+                <input type="password" value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} />
+              </label>
+              <div className="row">
+                <button
+                  disabled={loading}
+                  onClick={() =>
+                    withRequest(executeApiLogin, {
+                      successMessage: "Sesion API iniciada con bearer.",
+                    })
+                  }
+                >
+                  Login API
+                </button>
+                <button
+                  disabled={loading}
+                  onClick={() => {
+                    clearAccessToken();
+                    setAuthStatus("Modo legacy");
+                  }}
+                >
+                  Cerrar token
+                </button>
+              </div>
+              <p>{authStatus}</p>
+            </article>
+          )}
+          <div className="topbar-status">
+            <span className={`dot ${loading ? "busy" : "idle"}`} />
+            <span>{loading ? "Procesando" : "Disponible"}</span>
+          </div>
         </div>
       </header>
 
-      <section className="content-grid">
+      <section className="interface-switch">
+        {INTERFACE_MODES.map((mode) => (
+          <button
+            key={mode.key}
+            type="button"
+            className={`interface-tab ${activeInterface === mode.key ? "active" : ""}`}
+            onClick={() => changeInterface(mode.key)}
+          >
+            <span>{mode.label}</span>
+            <small>{mode.description}</small>
+          </button>
+        ))}
+      </section>
+
+      <section className={`content-grid content-grid-${activeInterface}`}>
+        {activeInterface !== "debug" && (
         <aside className="panel setup-panel">
+          {activeInterface === "player" && (
+          <>
           <h2>1. Preparar partida</h2>
           <section className="journey-card">
             <p className="journey-title">Ruta sugerida</p>
@@ -443,8 +568,24 @@ function App() {
           >
             Cargar sesion
           </button>
+          </>
+          )}
 
+          {activeInterface === "admin" && (
+          <>
+          <h2>Interfaz Admin Docente</h2>
+          <p className="subtitle">Gestion de aulas, estudiantes y seguimiento.</p>
           <h3>Espacio docente (MVP)</h3>
+          <div className="row">
+            <label>
+              Desde
+              <input type="date" value={dashboardFrom} onChange={(e) => setDashboardFrom(e.target.value)} />
+            </label>
+            <label>
+              Hasta
+              <input type="date" value={dashboardTo} onChange={(e) => setDashboardTo(e.target.value)} />
+            </label>
+          </div>
           <label>
             Aula activa
             <select value={selectedClassroomId} onChange={(e) => setSelectedClassroomId(e.target.value)}>
@@ -559,17 +700,65 @@ function App() {
           {selectedClassroomId && (
             <a
               className="csv-link"
-              href={`${API_BASE_URL}/teacher/classrooms/${selectedClassroomId}/report.csv`}
+              href={`${API_BASE_URL}/teacher/classrooms/${selectedClassroomId}/report.csv?${new URLSearchParams({
+                ...(dashboardFrom ? { from: dashboardFrom } : {}),
+                ...(dashboardTo ? { to: dashboardTo } : {}),
+              }).toString()}`}
               target="_blank"
               rel="noreferrer"
             >
               Descargar reporte CSV
             </a>
           )}
+          <article className="mini-panel">
+            <h4>Dashboard docente</h4>
+            {dashboard.classroomId ? (
+              <>
+                <p>
+                  Aula: <strong>{dashboard.classroomName}</strong>
+                </p>
+                <p>
+                  Estudiantes: <strong>{dashboard.students}</strong> · Asignaciones: <strong>{dashboard.assignments}</strong>
+                </p>
+                <p>
+                  Intentos activos: <strong>{dashboard.activeAttempts}</strong> · Finalizados: <strong>{dashboard.completedAttempts}</strong>
+                </p>
+                <p>
+                  Abandono estimado: <strong>{dashboard.abandonmentRatePercent}%</strong>
+                </p>
+                <p>
+                  Tiempo efectivo total: <strong>{dashboard.totalEffectiveReadingMinutes} min</strong> · Promedio por intento: <strong>{dashboard.averageEffectiveMinutesPerAttempt} min</strong>
+                </p>
+                {dashboard.abandonmentByActivity.length > 0 && (
+                  <ul>
+                    {dashboard.abandonmentByActivity.slice(0, 4).map((activity) => (
+                      <li key={activity.eventType}>
+                        {activity.eventType}: {activity.activeAttempts} activos ({activity.activeRatePercent}%)
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <ul>
+                  {dashboard.studentProgress.slice(0, 8).map((row) => (
+                    <li key={row.studentId}>
+                      {row.studentName}: {row.averageProgressPercent}% · Score {row.averageScore} · {row.averageEffectiveMinutes} min/intento · Intentos {row.attempts}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            ) : (
+              <p>Selecciona un aula para ver progreso docente.</p>
+            )}
+          </article>
+          </>
+          )}
         </aside>
+        )}
 
+        {activeInterface === "player" && (
         <section className="panel play-panel">
           <h2>3. Jugar</h2>
+          {kidMode && <p className="kid-helper">Lee con calma, elige una accion y avanza paso a paso.</p>}
           {!state && <p className="placeholder">Inicia o carga una sesion para comenzar.</p>}
 
           {state && (
@@ -807,32 +996,111 @@ function App() {
                   )}
                 </article>
 
-                <article className="mini-panel">
-                  <h4>Dashboard docente</h4>
-                  {dashboard.classroomId ? (
-                    <>
-                      <p>
-                        Aula: <strong>{dashboard.classroomName}</strong>
-                      </p>
-                      <p>
-                        Estudiantes: <strong>{dashboard.students}</strong> · Asignaciones: <strong>{dashboard.assignments}</strong>
-                      </p>
-                      <ul>
-                        {dashboard.studentProgress.slice(0, 5).map((row) => (
-                          <li key={row.studentId}>
-                            {row.studentName}: {row.averageProgressPercent}% · Score {row.averageScore}
-                          </li>
-                        ))}
-                      </ul>
-                    </>
-                  ) : (
-                    <p>Selecciona un aula para ver progreso docente.</p>
-                  )}
-                </article>
               </section>
             </>
           )}
         </section>
+        )}
+
+        {activeInterface === "debug" && (
+          <>
+            <section className="panel setup-panel">
+              <h2>Interfaz Debug</h2>
+              <p className="subtitle">Inspeccion tecnica de sesion, telemetria y grafo narrativo.</p>
+              <label>
+                Session ID
+                <input
+                  value={sessionIdInput}
+                  onChange={(e) => setSessionIdInput(e.target.value)}
+                  placeholder="sessionId para inspeccion"
+                />
+              </label>
+              <div className="row">
+                <button
+                  disabled={loading || !sessionIdInput}
+                  onClick={() =>
+                    withRequest(async () => {
+                      const loaded = await loadState(sessionIdInput);
+                      setState(loaded);
+                    }, { successMessage: "Sesion cargada para debug." })
+                  }
+                >
+                  Cargar estado
+                </button>
+                <button
+                  disabled={loading}
+                  onClick={() =>
+                    withRequest(async () => {
+                      await refreshTelemetry();
+                      await refreshGraph(state?.sessionId ?? sessionIdInput);
+                    }, { successMessage: "Panel debug actualizado." })
+                  }
+                >
+                  Refrescar debug
+                </button>
+              </div>
+            </section>
+
+            <section className="panel play-panel">
+              <h2>Datos de depuracion</h2>
+              <section className="bottom-grid">
+                <article className="mini-panel">
+                  <h4>Telemetria por evento</h4>
+                  <ul>
+                    {Object.entries(telemetry.byEvent).length === 0 && <li>Sin datos</li>}
+                    {Object.entries(telemetry.byEvent).map(([name, value]) => (
+                      <li key={name}>
+                        {name}: {value}
+                      </li>
+                    ))}
+                  </ul>
+                </article>
+
+                <article className="mini-panel">
+                  <h4>Telemetria por etapa</h4>
+                  <ul>
+                    {Object.entries(telemetry.byStage).length === 0 && <li>Sin datos</li>}
+                    {Object.entries(telemetry.byStage).map(([name, value]) => (
+                      <li key={name}>
+                        {name}: {value}
+                      </li>
+                    ))}
+                  </ul>
+                </article>
+
+                <article className="mini-panel">
+                  <h4>Memoria narrativa</h4>
+                  {memoryEntries.length === 0 ? (
+                    <p>Sin entidades registradas.</p>
+                  ) : (
+                    <ul>
+                      {memoryEntries.map(([entity, weight]) => (
+                        <li key={entity}>
+                          {entity}: {weight}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </article>
+
+                <article className="mini-panel">
+                  <h4>Relaciones narrativas</h4>
+                  {graph.links.length === 0 ? (
+                    <p>Sin relaciones registradas.</p>
+                  ) : (
+                    <ul>
+                      {graph.links.slice(0, 10).map((link) => (
+                        <li key={`${link.source}-${link.target}`}>
+                          {link.source} ↔ {link.target}: {link.weight}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </article>
+              </section>
+            </section>
+          </>
+        )}
       </section>
 
       <footer className="feedback-strip">

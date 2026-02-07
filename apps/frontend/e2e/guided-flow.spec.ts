@@ -96,6 +96,9 @@ test("guided flow supports start, manual action and autoplay with telemetry", as
         teacherName: "Docente",
         students: 0,
         assignments: 0,
+        activeAttempts: 0,
+        completedAttempts: 0,
+        abandonmentRatePercent: 0,
         studentProgress: [],
       },
     });

@@ -6,7 +6,9 @@ import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class BookImportServiceTest {
@@ -23,5 +25,43 @@ class BookImportServiceTest {
 
         assertTrue(Files.exists(asset.path()));
         assertTrue(asset.title().endsWith(".txt"));
+    }
+
+    @Test
+    void shouldRejectUnsupportedExtension(@TempDir Path tempDir) throws Exception {
+        Path source = tempDir.resolve("sample.docx");
+        Files.writeString(source, "contenido");
+        BookImportService service = new BookImportService(tempDir.resolve("catalog"), 1024 * 1024);
+
+        assertThrows(IllegalArgumentException.class, () -> service.importFromInput(source.toString()));
+    }
+
+    @Test
+    void shouldRejectFilesAboveMaxImportSize(@TempDir Path tempDir) throws Exception {
+        Path source = tempDir.resolve("big-book.txt");
+        byte[] payload = new byte[3000];
+        Arrays.fill(payload, (byte) 'a');
+        Files.write(source, payload);
+        BookImportService service = new BookImportService(tempDir.resolve("catalog"), 1024);
+
+        assertThrows(IllegalArgumentException.class, () -> service.importFromInput(source.toString()));
+    }
+
+    @Test
+    void shouldRejectPdfWithoutPdfSignature(@TempDir Path tempDir) throws Exception {
+        Path source = tempDir.resolve("fake.pdf");
+        Files.writeString(source, "esto no es un pdf real");
+        BookImportService service = new BookImportService(tempDir.resolve("catalog"), 1024 * 1024);
+
+        assertThrows(IllegalArgumentException.class, () -> service.importFromInput(source.toString()));
+    }
+
+    @Test
+    void shouldRejectTextWithBinaryContent(@TempDir Path tempDir) throws Exception {
+        Path source = tempDir.resolve("binary.txt");
+        Files.write(source, new byte[] {65, 66, 0, 67, 68});
+        BookImportService service = new BookImportService(tempDir.resolve("catalog"), 1024 * 1024);
+
+        assertThrows(IllegalArgumentException.class, () -> service.importFromInput(source.toString()));
     }
 }

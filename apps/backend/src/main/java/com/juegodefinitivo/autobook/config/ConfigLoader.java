@@ -21,6 +21,7 @@ public class ConfigLoader {
         Path dataDir = Path.of(properties.getProperty("app.data.dir", ".autobook-data")).toAbsolutePath().normalize();
         Path saveFile = dataDir.resolve(properties.getProperty("app.save.file", "savegame.properties"));
         Path booksDir = Path.of(properties.getProperty("app.books.dir", "books")).toAbsolutePath().normalize();
+        long maxImportBytes = Long.parseLong(properties.getProperty("app.import.max-bytes", "26214400"));
 
         int maxChars = Integer.parseInt(properties.getProperty("app.scene.max.chars", "420"));
         int linesPerChunk = Integer.parseInt(properties.getProperty("app.scene.lines-per-chunk", "4"));
@@ -30,6 +31,7 @@ public class ConfigLoader {
                 dataDir,
                 saveFile,
                 booksDir,
+                maxImportBytes,
                 maxChars,
                 linesPerChunk
         );

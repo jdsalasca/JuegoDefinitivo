@@ -83,6 +83,7 @@ export type StudentProgress = {
   averageScore: number;
   averageCorrectAnswers: number;
   averageProgressPercent: number;
+  averageEffectiveMinutes: number;
   dominantDifficulty: string;
 };
 
@@ -92,7 +93,24 @@ export type ClassroomDashboard = {
   teacherName: string;
   students: number;
   assignments: number;
+  activeAttempts: number;
+  completedAttempts: number;
+  abandonmentRatePercent: number;
+  totalEffectiveReadingMinutes: number;
+  averageEffectiveMinutesPerAttempt: number;
+  abandonmentByActivity: {
+    eventType: string;
+    activeAttempts: number;
+    activeRatePercent: number;
+  }[];
   studentProgress: StudentProgress[];
+};
+
+export type LoginResponse = {
+  accessToken: string;
+  tokenType: string;
+  expiresAtEpochSeconds: number;
+  role: string;
 };
 
 export type StudentRecord = {

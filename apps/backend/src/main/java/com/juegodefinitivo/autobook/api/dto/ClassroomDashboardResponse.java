@@ -8,6 +8,12 @@ public record ClassroomDashboardResponse(
         String teacherName,
         int students,
         int assignments,
+        int activeAttempts,
+        int completedAttempts,
+        int abandonmentRatePercent,
+        int totalEffectiveReadingMinutes,
+        int averageEffectiveMinutesPerAttempt,
+        List<ActivityAbandonmentView> abandonmentByActivity,
         List<StudentProgressView> studentProgress
 ) {
 }

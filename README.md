@@ -50,10 +50,11 @@ Abrir: `http://localhost:5173`
 4. Para continuar luego, usa `Cargar sesion` con el `sessionId` (tambien se recuerda automaticamente en el navegador).
 
 ## Release desktop
-- Release publico actual: `v3.4.0`
+- Release publico actual: `v3.5.0`
 - Incluye `AutoBookQuest-win64.zip` (portable con `AutoBookQuest.exe`).
 - Para instalador `.exe` tipo setup con `jpackage`, se requiere WiX v3 instalado.
 - El workflow `release` publica tambien `latest.json` para auto-update.
+- Notas del release: `docs/RELEASE_NOTES_v3.5.0.md`.
 
 ## Calidad
 - Backend: `mvn test`
