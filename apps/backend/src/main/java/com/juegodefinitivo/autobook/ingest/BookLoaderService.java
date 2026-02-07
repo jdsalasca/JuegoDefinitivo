@@ -9,16 +9,19 @@ import java.util.List;
 public class BookLoaderService {
 
     private final ExtractorResolver resolver;
+    private final BookTextNormalizer normalizer;
     private final BookParser parser;
 
-    public BookLoaderService(ExtractorResolver resolver, BookParser parser) {
+    public BookLoaderService(ExtractorResolver resolver, BookTextNormalizer normalizer, BookParser parser) {
         this.resolver = resolver;
+        this.normalizer = normalizer;
         this.parser = parser;
     }
 
     public List<Scene> loadScenes(Path path, int maxChars, int linesPerChunk) {
         DocumentTextExtractor extractor = resolver.resolve(path);
         String rawText = extractor.extract(path);
-        return parser.parseText(rawText, maxChars, linesPerChunk);
+        String cleanText = normalizer.normalize(rawText);
+        return parser.parseText(cleanText, maxChars, linesPerChunk);
     }
 }

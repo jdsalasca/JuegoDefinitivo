@@ -5,6 +5,7 @@
 - Modo auto pedagogico configurable por edad/nivel.
 - Telemetria UX basica con resumen por evento/etapa.
 - Pipeline de release con artefacto desktop + `latest.json`.
+- Pipeline base de normalizacion de texto (headers/footers repetidos, numeros de pagina, guiones de corte).
 
 1. Persistencia productiva
 - Migrar sesiones/inventario a PostgreSQL con Flyway.
@@ -16,7 +17,7 @@
 - Agregar rate limiting basico por IP/sesion.
 
 3. Calidad de narrativa
-- Mejorar extraccion semantica de personajes/lugares.
+- Mejorar extraccion semantica de personajes/lugares sobre texto ya normalizado.
 - Añadir continuidad narrativa entre escenas.
 - Incorporar niveles de dificultad por edad.
 

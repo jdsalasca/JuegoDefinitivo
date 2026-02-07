@@ -6,6 +6,7 @@ import com.juegodefinitivo.autobook.engine.GameEngineService;
 import com.juegodefinitivo.autobook.ingest.BookCatalogService;
 import com.juegodefinitivo.autobook.ingest.BookImportService;
 import com.juegodefinitivo.autobook.ingest.BookLoaderService;
+import com.juegodefinitivo.autobook.ingest.BookTextNormalizer;
 import com.juegodefinitivo.autobook.ingest.ExtractorResolver;
 import com.juegodefinitivo.autobook.ingest.PdfTextExtractor;
 import com.juegodefinitivo.autobook.ingest.TxtTextExtractor;
@@ -55,8 +56,8 @@ public class AppBeansConfig {
     }
 
     @Bean
-    public BookLoaderService bookLoaderService(ExtractorResolver resolver, BookParser parser) {
-        return new BookLoaderService(resolver, parser);
+    public BookLoaderService bookLoaderService(ExtractorResolver resolver, BookTextNormalizer normalizer, BookParser parser) {
+        return new BookLoaderService(resolver, normalizer, parser);
     }
 
     @Bean
