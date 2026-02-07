@@ -9,21 +9,21 @@ Definir que implementar primero para maximizar valor comunitario (estudiantes, d
 - Regla de salida: no pasa a implementacion si no tiene criterio de aceptacion medible.
 
 ## Current Priority Order
-1. Seguridad institucional minima (`R5`):
+1. Seguridad institucional minima (`R5`) [P0]:
    - Autenticacion/roles (`teacher`, `student`, `admin`).
    - Seguridad de importacion de archivos (MIME/firma, limites, saneamiento).
    - Endurecimiento de errores y controles anti-abuso (rate limiting).
-2. Evidence Pack docente avanzado (`R2`):
+2. Evidence Pack docente avanzado (`R2`) [P1]:
    - Tiempo efectivo de lectura.
    - Abandono por actividad.
    - Segmentacion por cohorte y periodo.
-3. Calidad pedagogica (`R3`):
+3. Calidad pedagogica (`R3`) [P1]:
    - Mejorar banco de preguntas por nivel lector/habilidad.
    - Mantener benchmark de calidad en CI como gate obligatorio.
-4. Accesibilidad estudiantil (`R1` + `R3`):
+4. Accesibilidad estudiantil (`R1` + `R3`) [P1]:
    - Alto contraste y modo lectura amigable.
    - Narracion asistida (TTS) y ayudas de lectura.
-5. Operacion de plataforma (`R5`):
+5. Operacion de plataforma (`R5`) [P2]:
    - Observabilidad (logs estructurados y metricas).
    - Backup/restore y retencion.
    - Contratos OpenAPI para integracion segura.
@@ -34,9 +34,10 @@ Definir que implementar primero para maximizar valor comunitario (estudiantes, d
 3. E2E base `npm run test:e2e` en verde.
 4. Criterios de mercado trazados en `docs/MARKET_VALUE_REQUIREMENTS.md`.
 
-## Active Delivery Slice (now)
+## Active Delivery Slice (status)
 1. Hardening de import de libros. (implementado base)
 2. Anti-duplicados y consistencia de evidencia docente. (implementado)
 3. UX infantil accesible (lectura amigable + alto contraste). (implementado)
 4. Auth por roles y rate limiting basico. (implementado base)
 5. Segmentacion temporal docente (`from`/`to`) en dashboard y CSV. (implementado base)
+6. Pendiente inmediato: metrica de tiempo efectivo y abandono por actividad real. (siguiente P1)

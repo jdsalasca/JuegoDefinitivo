@@ -10,6 +10,6 @@
 7. `v3.5` (parcial): panel docente y analitica por estudiante con export CSV.
 
 ## Next Milestones
-1. `v3.5`: cerrar analitica docente avanzada (tiempo, abandono, cohortes).
-2. `v3.6`: instalador firmado + observabilidad de produccion.
+1. `v3.5`: cerrar analitica docente avanzada (tiempo, abandono, cohortes) y consolidar filtros por periodo.
+2. `v3.6`: seguridad institucional (auth/roles productivo), observabilidad de produccion y backup/restore.
 3. `v3.7`: mejora profunda de lectura de libros (OCR, tablas, encabezados complejos, chunking semantico).

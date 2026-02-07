@@ -92,6 +92,9 @@ export type ClassroomDashboard = {
   teacherName: string;
   students: number;
   assignments: number;
+  activeAttempts: number;
+  completedAttempts: number;
+  abandonmentRatePercent: number;
   studentProgress: StudentProgress[];
 };
 

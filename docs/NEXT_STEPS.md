@@ -18,6 +18,7 @@
 - Auth API por roles con token (`student/teacher/admin`) para endpoints `/api/**`.
 - Rate limiting basico por IP para endpoints de escritura.
 - Filtros temporales (`from`, `to`) para dashboard y reporte docente.
+- Dashboard docente con intentos activos/finalizados y tasa estimada de abandono.
 
 1. Persistencia productiva
 - Agregar estrategia de backup/restore y retencion.

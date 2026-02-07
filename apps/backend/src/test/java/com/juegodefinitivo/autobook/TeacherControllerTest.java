@@ -100,6 +100,9 @@ class TeacherControllerTest {
         mockMvc.perform(get("/api/teacher/classrooms/" + classroomId + "/dashboard"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.classroomId").value(classroomId))
+                .andExpect(jsonPath("$.activeAttempts").isNumber())
+                .andExpect(jsonPath("$.completedAttempts").isNumber())
+                .andExpect(jsonPath("$.abandonmentRatePercent").isNumber())
                 .andExpect(jsonPath("$.studentProgress[0].studentId").value(studentId));
 
         mockMvc.perform(get("/api/teacher/classrooms/" + classroomId + "/dashboard")

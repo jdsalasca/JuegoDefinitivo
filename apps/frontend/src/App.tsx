@@ -92,6 +92,9 @@ const EMPTY_DASHBOARD: ClassroomDashboard = {
   teacherName: "",
   students: 0,
   assignments: 0,
+  activeAttempts: 0,
+  completedAttempts: 0,
+  abandonmentRatePercent: 0,
   studentProgress: [],
 };
 
@@ -651,6 +654,12 @@ function App() {
                 </p>
                 <p>
                   Estudiantes: <strong>{dashboard.students}</strong> · Asignaciones: <strong>{dashboard.assignments}</strong>
+                </p>
+                <p>
+                  Intentos activos: <strong>{dashboard.activeAttempts}</strong> · Finalizados: <strong>{dashboard.completedAttempts}</strong>
+                </p>
+                <p>
+                  Abandono estimado: <strong>{dashboard.abandonmentRatePercent}%</strong>
                 </p>
                 <ul>
                   {dashboard.studentProgress.slice(0, 8).map((row) => (

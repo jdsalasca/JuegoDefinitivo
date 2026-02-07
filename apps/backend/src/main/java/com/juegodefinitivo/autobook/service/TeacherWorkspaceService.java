@@ -124,6 +124,8 @@ public class TeacherWorkspaceService {
         List<TeacherWorkspaceRepository.AttemptRow> attempts = loadAttempts(classroomId, from, to);
 
         List<StudentProgressView> progressViews = new ArrayList<>();
+        int totalAttempts = 0;
+        int totalCompletedAttempts = 0;
         for (TeacherWorkspaceRepository.StudentRow student : students) {
             List<TeacherWorkspaceRepository.AttemptRow> studentAttempts = attempts.stream()
                     .filter(attempt -> attempt.studentId().equals(student.id()))
@@ -139,6 +141,8 @@ public class TeacherWorkspaceService {
             int avgProgress = (int) states.stream().mapToInt(this::progressPercent).average().orElse(0);
             int completed = (int) states.stream().filter(GameStateResponse::completed).count();
             String difficulty = dominantDifficulty(states);
+            totalAttempts += studentAttempts.size();
+            totalCompletedAttempts += completed;
 
             progressViews.add(new StudentProgressView(
                     student.id(),
@@ -152,12 +156,20 @@ public class TeacherWorkspaceService {
             ));
         }
 
+        int activeAttempts = Math.max(0, totalAttempts - totalCompletedAttempts);
+        int abandonmentRatePercent = totalAttempts == 0
+                ? 0
+                : (int) ((activeAttempts / (double) totalAttempts) * 100);
+
         return new ClassroomDashboardResponse(
                 classroom.id(),
                 classroom.name(),
                 classroom.teacherName(),
                 students.size(),
                 assignments.size(),
+                activeAttempts,
+                totalCompletedAttempts,
+                abandonmentRatePercent,
                 progressViews
         );
     }
