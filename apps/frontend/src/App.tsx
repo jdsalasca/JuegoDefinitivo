@@ -83,6 +83,13 @@ function App() {
     return Object.entries(state.inventory);
   }, [state]);
 
+  const memoryEntries = useMemo(() => {
+    if (!state) {
+      return [] as Array<[string, number]>;
+    }
+    return Object.entries(state.narrativeMemory).sort((a, b) => b[1] - a[1]).slice(0, 6);
+  }, [state]);
+
   const progress = useMemo(() => {
     if (!state?.currentScene) {
       return 0;
@@ -343,6 +350,15 @@ function App() {
                   <p className="scene-meta">
                     Evento: <strong>{state.currentScene.eventType}</strong> · NPC: <strong>{state.currentScene.npc}</strong>
                   </p>
+                  <p className="scene-meta">
+                    Nivel cognitivo: <strong>{state.currentScene.cognitiveLevel}</strong>
+                  </p>
+                  <p className="scene-meta">{state.currentScene.continuityHint}</p>
+                  {state.currentScene.entities.length > 0 && (
+                    <p className="scene-meta">
+                      Entidades: <strong>{state.currentScene.entities.join(", ")}</strong>
+                    </p>
+                  )}
                   <p className="scene-text">{state.currentScene.text}</p>
                 </article>
               ) : (
@@ -498,6 +514,21 @@ function App() {
                         </li>
                       ))}
                   </ul>
+                </article>
+
+                <article className="mini-panel">
+                  <h4>Memoria narrativa</h4>
+                  {memoryEntries.length === 0 ? (
+                    <p>Sin entidades registradas.</p>
+                  ) : (
+                    <ul>
+                      {memoryEntries.map(([entity, weight]) => (
+                        <li key={entity}>
+                          {entity}: {weight}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </article>
               </section>
             </>

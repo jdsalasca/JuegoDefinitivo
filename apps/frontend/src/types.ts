@@ -17,6 +17,9 @@ export type SceneView = {
   eventType: string;
   npc: string;
   challenge: ChallengeView;
+  entities: string[];
+  cognitiveLevel: string;
+  continuityHint: string;
 };
 
 export type QuestView = {
@@ -39,6 +42,7 @@ export type GameState = {
   correctAnswers: number;
   discoveries: number;
   inventory: Record<string, number>;
+  narrativeMemory: Record<string, number>;
   quests: QuestView[];
   currentScene: SceneView | null;
   lastMessage: string;

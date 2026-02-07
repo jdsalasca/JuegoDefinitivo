@@ -27,6 +27,10 @@ public class AutoQuestionService {
     }
 
     public ChallengeQuestion createQuestion(Scene scene) {
+        return createQuestion(scene, "LITERAL");
+    }
+
+    public ChallengeQuestion createQuestion(Scene scene, String cognitiveLevel) {
         List<String> keywords = extractKeywords(scene.text());
         String correct = keywords.isEmpty() ? "historia" : keywords.get(random.nextInt(keywords.size()));
 
@@ -47,11 +51,18 @@ public class AutoQuestionService {
         java.util.Collections.shuffle(optionList, random);
         int correctIndex = optionList.indexOf(correct) + 1;
 
-        return new ChallengeQuestion(
-                "Que palabra aparece en la escena?",
-                optionList,
-                correctIndex
-        );
+        return new ChallengeQuestion(promptFor(cognitiveLevel), optionList, correctIndex);
+    }
+
+    private String promptFor(String cognitiveLevel) {
+        if (cognitiveLevel == null) {
+            return "Que palabra aparece en la escena?";
+        }
+        return switch (cognitiveLevel.toUpperCase(Locale.ROOT)) {
+            case "INFERENCIAL" -> "Que concepto resume mejor lo que ocurre en la escena?";
+            case "CRITICO" -> "Que opcion representa mejor la decision mas sabia en esta escena?";
+            default -> "Que palabra aparece en la escena?";
+        };
     }
 
     private List<String> extractKeywords(String text) {

@@ -2,6 +2,8 @@ package com.juegodefinitivo.autobook.narrative;
 
 import com.juegodefinitivo.autobook.domain.ChallengeQuestion;
 
+import java.util.List;
+
 public record NarrativeScene(
         int index,
         String title,
@@ -10,6 +12,9 @@ public record NarrativeScene(
         String npc,
         SceneEventType eventType,
         ChallengeQuestion challengeQuestion,
-        String discoveryItemId
+        String discoveryItemId,
+        List<String> entities,
+        String cognitiveLevel,
+        String continuityHint
 ) {
 }

@@ -81,6 +81,7 @@ function gameState(sessionId: string, score: number, index: number, lastMessage:
     correctAnswers: 1,
     discoveries: 1,
     inventory: { potion_small: 1 },
+    narrativeMemory: { Mentor: 2, "Lugar: Bosque": 1 },
     quests: [
       {
         id: "reader",
@@ -100,6 +101,9 @@ function gameState(sessionId: string, score: number, index: number, lastMessage:
         prompt: "Pregunta?",
         options: ["A", "B", "C", "D"],
       },
+      entities: ["Mentor", "Lugar: Bosque"],
+      cognitiveLevel: "LITERAL",
+      continuityHint: "Mantener continuidad con Mentor.",
     },
     lastMessage,
   };

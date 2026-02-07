@@ -11,6 +11,7 @@ import com.juegodefinitivo.autobook.ingest.ExtractorResolver;
 import com.juegodefinitivo.autobook.ingest.PdfTextExtractor;
 import com.juegodefinitivo.autobook.ingest.TxtTextExtractor;
 import com.juegodefinitivo.autobook.narrative.DialogueService;
+import com.juegodefinitivo.autobook.narrative.EntityExtractor;
 import com.juegodefinitivo.autobook.narrative.NarrativeBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -41,8 +42,8 @@ public class AppBeansConfig {
     }
 
     @Bean
-    public NarrativeBuilder narrativeBuilder(AutoQuestionService questionService, Random random) {
-        return new NarrativeBuilder(questionService, random);
+    public NarrativeBuilder narrativeBuilder(AutoQuestionService questionService, EntityExtractor entityExtractor, Random random) {
+        return new NarrativeBuilder(questionService, entityExtractor, random);
     }
 
     @Bean

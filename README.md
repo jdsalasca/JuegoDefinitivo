@@ -58,6 +58,7 @@ Abrir: `http://localhost:5173`
 - `docs/PROJECT_CHARTER.md`
 - `docs/ROADMAP.md`
 - `docs/NEXT_STEPS.md`
+- `docs/LEARNING_TRACK_TODO.md`
 - `docs/DESKTOP.md`
 - `CONTRIBUTING.md`
 - `CODE_OF_CONDUCT.md`
