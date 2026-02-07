@@ -17,6 +17,7 @@ mvn spring-boot:run
 - `GET /api/game/{sessionId}`
 - `POST /api/game/{sessionId}/action` body: `{ "action": "TALK|EXPLORE|CHALLENGE|USE_ITEM", "answerIndex": 1, "itemId": "potion_small" }`
 - `POST /api/game/{sessionId}/autoplay` body: `{ "ageBand": "9-12", "readingLevel": "intermediate", "maxSteps": 3 }`
+- `GET /api/game/{sessionId}/graph`
 - `POST /api/telemetry/events`
 - `GET /api/telemetry/summary`
 
@@ -32,4 +33,4 @@ mvn spring-boot:run
 ## Notas
 - CORS permitido para `http://localhost:5173`.
 - El frontend empaquetado se copia a `src/main/resources/static` solo durante build desktop.
-- El pipeline narrativo incluye normalizacion de texto, memoria de entidades y nivel cognitivo por escena.
+- El pipeline narrativo incluye normalizacion de texto, memoria de entidades, grafo de relaciones y nivel cognitivo por escena.

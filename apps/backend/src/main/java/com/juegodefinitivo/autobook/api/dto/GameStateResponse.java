@@ -17,6 +17,7 @@ public record GameStateResponse(
         int discoveries,
         Map<String, Integer> inventory,
         Map<String, Integer> narrativeMemory,
+        String adaptiveDifficulty,
         List<QuestView> quests,
         SceneView currentScene,
         String lastMessage
