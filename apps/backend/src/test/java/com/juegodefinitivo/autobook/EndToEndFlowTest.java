@@ -6,9 +6,11 @@ import com.juegodefinitivo.autobook.engine.BookParser;
 import com.juegodefinitivo.autobook.engine.GameEngineService;
 import com.juegodefinitivo.autobook.engine.PlayerAction;
 import com.juegodefinitivo.autobook.ingest.BookLoaderService;
+import com.juegodefinitivo.autobook.ingest.BookTextNormalizer;
 import com.juegodefinitivo.autobook.ingest.ExtractorResolver;
 import com.juegodefinitivo.autobook.ingest.TxtTextExtractor;
 import com.juegodefinitivo.autobook.narrative.DialogueService;
+import com.juegodefinitivo.autobook.narrative.EntityExtractor;
 import com.juegodefinitivo.autobook.narrative.NarrativeBuilder;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -28,9 +30,10 @@ class EndToEndFlowTest {
 
         BookLoaderService loader = new BookLoaderService(
                 new ExtractorResolver(new TxtTextExtractor(), path -> ""),
+                new BookTextNormalizer(),
                 new BookParser()
         );
-        NarrativeBuilder builder = new NarrativeBuilder(new AutoQuestionService(new Random(2)), new Random(2));
+        NarrativeBuilder builder = new NarrativeBuilder(new AutoQuestionService(new Random(2)), new EntityExtractor(), new Random(2));
         GameEngineService engine = new GameEngineService(new DialogueService(), new Random(2));
 
         var scenes = builder.build(loader.loadScenes(book, 320, 4));

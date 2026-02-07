@@ -9,13 +9,14 @@
 
 ## Product
 - [ ] Guardado multiusuario en DB
-- [ ] Dificultad adaptativa por edad
+- [x] Dificultad adaptativa base por edad (modo auto)
 - [ ] Modo docente con analitica
 - [ ] Internacionalizacion es/en/pt
 - [ ] Accesibilidad avanzada (alto contraste, narracion)
+- [x] Pipeline base de normalizacion de texto para PDF/TXT
 
 ## Engineering
 - [ ] Contratos OpenAPI para endpoints
 - [ ] Tests frontend unitarios
-- [ ] Tests E2E de interfaz
+- [x] Tests E2E de interfaz
 - [ ] Observabilidad (logs estructurados + metricas)

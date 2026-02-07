@@ -5,6 +5,7 @@ import com.juegodefinitivo.autobook.api.dto.AutoplayRequest;
 import com.juegodefinitivo.autobook.api.dto.BookView;
 import com.juegodefinitivo.autobook.api.dto.GameStateResponse;
 import com.juegodefinitivo.autobook.api.dto.ImportBookRequest;
+import com.juegodefinitivo.autobook.api.dto.NarrativeGraphResponse;
 import com.juegodefinitivo.autobook.api.dto.StartGameRequest;
 import com.juegodefinitivo.autobook.api.dto.TelemetryEventRequest;
 import com.juegodefinitivo.autobook.api.dto.TelemetrySummaryResponse;
@@ -65,6 +66,11 @@ public class GameController {
     @GetMapping("/game/{sessionId}")
     public GameStateResponse getState(@PathVariable String sessionId) {
         return service.getState(sessionId);
+    }
+
+    @GetMapping("/game/{sessionId}/graph")
+    public NarrativeGraphResponse getNarrativeGraph(@PathVariable String sessionId) {
+        return service.getNarrativeGraph(sessionId);
     }
 
     @PostMapping("/game/{sessionId}/action")

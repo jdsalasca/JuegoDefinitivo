@@ -36,6 +36,11 @@ npm run build
 - El frontend reporta eventos de setup/juego al backend (`/api/telemetry/events`).
 - Resumen visible en UI (`Telemetria UX`) y disponible por API (`/api/telemetry/summary`).
 
+## Inteligencia narrativa en UI
+- Dificultad adaptativa visible por sesion.
+- Memoria narrativa (entidades mas frecuentes).
+- Relaciones narrativas (grafo top de co-ocurrencias por sesion).
+
 ## E2E
 ```bash
 npm run test:e2e

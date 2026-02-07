@@ -45,6 +45,7 @@ class GameControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.sessionId").exists())
                 .andExpect(jsonPath("$.currentScene.title").exists())
+                .andExpect(jsonPath("$.adaptiveDifficulty").exists())
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
@@ -56,7 +57,13 @@ class GameControllerTest {
                         .content(objectMapper.writeValueAsString(new ActionRequest("TALK", null, null))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.lastMessage").exists())
-                .andExpect(jsonPath("$.score").isNumber());
+                .andExpect(jsonPath("$.score").isNumber())
+                .andExpect(jsonPath("$.adaptiveDifficulty").exists());
+
+        mockMvc.perform(get("/api/game/" + sessionId + "/graph"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.sessionId").value(sessionId))
+                .andExpect(jsonPath("$.nodes").exists());
 
         mockMvc.perform(post("/api/game/" + sessionId + "/autoplay")
                         .contentType(MediaType.APPLICATION_JSON)

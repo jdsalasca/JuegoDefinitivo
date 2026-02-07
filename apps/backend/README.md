@@ -16,6 +16,10 @@ mvn spring-boot:run
 - `POST /api/game/start` body: `{ "playerName": "Juan", "bookPath": "C:/.../libro.pdf" }`
 - `GET /api/game/{sessionId}`
 - `POST /api/game/{sessionId}/action` body: `{ "action": "TALK|EXPLORE|CHALLENGE|USE_ITEM", "answerIndex": 1, "itemId": "potion_small" }`
+- `POST /api/game/{sessionId}/autoplay` body: `{ "ageBand": "9-12", "readingLevel": "intermediate", "maxSteps": 3 }`
+- `GET /api/game/{sessionId}/graph`
+- `POST /api/telemetry/events`
+- `GET /api/telemetry/summary`
 
 ## Arquitectura
 - `domain`: entidades de juego.
@@ -24,7 +28,9 @@ mvn spring-boot:run
 - `narrative`: construccion de escenas.
 - `service`: orquestacion de sesiones.
 - `api`: controladores y DTOs.
+- `docs/LEARNING_TRACK_TODO.md`: plan de mejora pedagogica por fases.
 
 ## Notas
 - CORS permitido para `http://localhost:5173`.
 - El frontend empaquetado se copia a `src/main/resources/static` solo durante build desktop.
+- El pipeline narrativo incluye normalizacion de texto, memoria de entidades, grafo de relaciones y nivel cognitivo por escena.

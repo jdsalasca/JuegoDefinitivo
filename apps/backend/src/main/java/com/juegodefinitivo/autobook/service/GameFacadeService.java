@@ -3,6 +3,7 @@ package com.juegodefinitivo.autobook.service;
 import com.juegodefinitivo.autobook.api.dto.BookView;
 import com.juegodefinitivo.autobook.api.dto.ChallengeView;
 import com.juegodefinitivo.autobook.api.dto.GameStateResponse;
+import com.juegodefinitivo.autobook.api.dto.NarrativeGraphResponse;
 import com.juegodefinitivo.autobook.api.dto.QuestView;
 import com.juegodefinitivo.autobook.api.dto.SceneView;
 import com.juegodefinitivo.autobook.config.AppConfig;
@@ -23,6 +24,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -38,6 +40,7 @@ public class GameFacadeService {
     private final NarrativeBuilder narrativeBuilder;
     private final GameEngineService engine;
     private final AutoplayService autoplayService;
+    private final NarrativeGraphService narrativeGraphService;
 
     private final Map<String, SessionState> sessions = new ConcurrentHashMap<>();
 
@@ -48,7 +51,8 @@ public class GameFacadeService {
             BookLoaderService loader,
             NarrativeBuilder narrativeBuilder,
             GameEngineService engine,
-            AutoplayService autoplayService
+            AutoplayService autoplayService,
+            NarrativeGraphService narrativeGraphService
     ) {
         this.config = config;
         this.catalog = catalog;
@@ -57,6 +61,7 @@ public class GameFacadeService {
         this.narrativeBuilder = narrativeBuilder;
         this.engine = engine;
         this.autoplayService = autoplayService;
+        this.narrativeGraphService = narrativeGraphService;
     }
 
     public void bootstrapSamples() {
@@ -94,13 +99,22 @@ public class GameFacadeService {
         }
 
         String id = UUID.randomUUID().toString();
-        sessions.put(id, new SessionState(session, scenes, "Partida iniciada."));
+        SessionState boot = new SessionState(session, scenes, "Partida iniciada.", new LinkedHashMap<>(), 0, 0);
+        if (!scenes.isEmpty()) {
+            boot = absorbEntities(id, boot, scenes.get(0));
+        }
+        sessions.put(id, boot);
         return toResponse(id, sessions.get(id));
     }
 
     public GameStateResponse getState(String sessionId) {
         SessionState state = requireSession(sessionId);
         return toResponse(sessionId, state);
+    }
+
+    public NarrativeGraphResponse getNarrativeGraph(String sessionId) {
+        requireSession(sessionId);
+        return narrativeGraphService.snapshot(sessionId);
     }
 
     public GameStateResponse applyAction(String sessionId, String actionValue, Integer answerIndex, String itemId) {
@@ -124,9 +138,11 @@ public class GameFacadeService {
                 throw new IllegalArgumentException("Debes enviar answerIndex para el reto.");
             }
             challengeCorrect = scene.challengeQuestion().isCorrect(answerIndex);
+            state = state.withChallengeAttempt(challengeCorrect);
         }
 
         TurnOutcome outcome = engine.apply(session, scene, action, challengeCorrect, itemId);
+        state = absorbEntities(sessionId, state, scene);
         if (outcome.consumedTurn()) {
             engine.moveNextScene(session, state.scenes().size());
         }
@@ -154,8 +170,15 @@ public class GameFacadeService {
             }
 
             NarrativeScene scene = state.scenes().get(session.getCurrentScene());
-            AutoplayService.PlannedTurn planned = autoplayService.planTurn(session, scene, ageBand, readingLevel);
+            String effectiveReadingLevel = (readingLevel == null || readingLevel.isBlank())
+                    ? state.adaptiveDifficulty().toLowerCase()
+                    : readingLevel;
+            AutoplayService.PlannedTurn planned = autoplayService.planTurn(session, scene, ageBand, effectiveReadingLevel);
             TurnOutcome outcome = engine.apply(session, scene, planned.action(), planned.challengeCorrect(), planned.itemId());
+            state = absorbEntities(sessionId, state, scene);
+            if (planned.action() == PlayerAction.CHALLENGE) {
+                state = state.withChallengeAttempt(planned.challengeCorrect());
+            }
             if (outcome.consumedTurn()) {
                 engine.moveNextScene(session, state.scenes().size());
             }
@@ -204,7 +227,10 @@ public class GameFacadeService {
                     current.text(),
                     current.eventType().name(),
                     current.npc(),
-                    new ChallengeView(current.challengeQuestion().prompt(), current.challengeQuestion().options())
+                    new ChallengeView(current.challengeQuestion().prompt(), current.challengeQuestion().options()),
+                    current.entities(),
+                    current.cognitiveLevel(),
+                    current.continuityHint()
             );
         }
 
@@ -225,10 +251,24 @@ public class GameFacadeService {
                 session.getCorrectAnswers(),
                 session.getDiscoveries(),
                 session.getInventory(),
+                state.narrativeMemory(),
+                state.adaptiveDifficulty(),
                 quests,
                 sceneView,
                 state.lastMessage()
         );
+    }
+
+    private SessionState absorbEntities(String sessionId, SessionState state, NarrativeScene scene) {
+        Map<String, Integer> memory = new LinkedHashMap<>(state.narrativeMemory());
+        for (String entity : scene.entities()) {
+            String key = entity.trim();
+            if (!key.isBlank()) {
+                memory.merge(key, 1, Integer::sum);
+            }
+        }
+        narrativeGraphService.record(sessionId, scene.entities());
+        return state.withMemory(memory);
     }
 
     private void copySampleIfMissing(String resource, String name) {
@@ -247,9 +287,40 @@ public class GameFacadeService {
         }
     }
 
-    private record SessionState(GameSession session, List<NarrativeScene> scenes, String lastMessage) {
+    private record SessionState(
+            GameSession session,
+            List<NarrativeScene> scenes,
+            String lastMessage,
+            Map<String, Integer> narrativeMemory,
+            int challengeAttempts,
+            int challengeCorrect
+    ) {
         private SessionState withMessage(String message) {
-            return new SessionState(session, scenes, message);
+            return new SessionState(session, scenes, message, narrativeMemory, challengeAttempts, challengeCorrect);
+        }
+
+        private SessionState withMemory(Map<String, Integer> memory) {
+            return new SessionState(session, scenes, lastMessage, memory, challengeAttempts, challengeCorrect);
+        }
+
+        private SessionState withChallengeAttempt(boolean wasCorrect) {
+            int nextAttempts = challengeAttempts + 1;
+            int nextCorrect = challengeCorrect + (wasCorrect ? 1 : 0);
+            return new SessionState(session, scenes, lastMessage, narrativeMemory, nextAttempts, nextCorrect);
+        }
+
+        private String adaptiveDifficulty() {
+            if (challengeAttempts < 2) {
+                return "INTERMEDIATE";
+            }
+            double accuracy = challengeCorrect / (double) challengeAttempts;
+            if (accuracy < 0.45 || session.getLife() < 35) {
+                return "BEGINNER";
+            }
+            if (accuracy > 0.8 && session.getScore() >= 80) {
+                return "ADVANCED";
+            }
+            return "INTERMEDIATE";
         }
     }
 }

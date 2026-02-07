@@ -32,7 +32,10 @@ class GameEngineServiceTest {
                 "NPC",
                 SceneEventType.DIALOGUE,
                 new ChallengeQuestion("q", List.of("a", "b", "c"), 1),
-                ""
+                "",
+                List.of("NPC"),
+                "LITERAL",
+                "Mantener continuidad con NPC."
         );
 
         var outcome = engine.apply(session, scene, PlayerAction.USE_ITEM, false, "potion_small");

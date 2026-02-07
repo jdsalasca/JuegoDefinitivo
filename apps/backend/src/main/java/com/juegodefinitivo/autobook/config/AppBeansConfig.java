@@ -6,10 +6,12 @@ import com.juegodefinitivo.autobook.engine.GameEngineService;
 import com.juegodefinitivo.autobook.ingest.BookCatalogService;
 import com.juegodefinitivo.autobook.ingest.BookImportService;
 import com.juegodefinitivo.autobook.ingest.BookLoaderService;
+import com.juegodefinitivo.autobook.ingest.BookTextNormalizer;
 import com.juegodefinitivo.autobook.ingest.ExtractorResolver;
 import com.juegodefinitivo.autobook.ingest.PdfTextExtractor;
 import com.juegodefinitivo.autobook.ingest.TxtTextExtractor;
 import com.juegodefinitivo.autobook.narrative.DialogueService;
+import com.juegodefinitivo.autobook.narrative.EntityExtractor;
 import com.juegodefinitivo.autobook.narrative.NarrativeBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -40,8 +42,8 @@ public class AppBeansConfig {
     }
 
     @Bean
-    public NarrativeBuilder narrativeBuilder(AutoQuestionService questionService, Random random) {
-        return new NarrativeBuilder(questionService, random);
+    public NarrativeBuilder narrativeBuilder(AutoQuestionService questionService, EntityExtractor entityExtractor, Random random) {
+        return new NarrativeBuilder(questionService, entityExtractor, random);
     }
 
     @Bean
@@ -55,8 +57,8 @@ public class AppBeansConfig {
     }
 
     @Bean
-    public BookLoaderService bookLoaderService(ExtractorResolver resolver, BookParser parser) {
-        return new BookLoaderService(resolver, parser);
+    public BookLoaderService bookLoaderService(ExtractorResolver resolver, BookTextNormalizer normalizer, BookParser parser) {
+        return new BookLoaderService(resolver, normalizer, parser);
     }
 
     @Bean

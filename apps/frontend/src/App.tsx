@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import "./App.css";
-import { autoplay, fetchTelemetrySummary, importBook, listBooks, loadState, sendAction, startGame, trackEvent } from "./api";
-import type { BookView, GameState, TelemetrySummary } from "./types";
+import { autoplay, fetchTelemetrySummary, importBook, listBooks, loadNarrativeGraph, loadState, sendAction, startGame, trackEvent } from "./api";
+import type { BookView, GameState, NarrativeGraph, TelemetrySummary } from "./types";
 
 type ActionKind = "TALK" | "EXPLORE" | "CHALLENGE" | "USE_ITEM";
 
@@ -50,6 +50,11 @@ const EMPTY_TELEMETRY: TelemetrySummary = {
   byEvent: {},
   byStage: {},
 };
+const EMPTY_GRAPH: NarrativeGraph = {
+  sessionId: "",
+  nodes: {},
+  links: [],
+};
 
 function App() {
   const [books, setBooks] = useState<BookView[]>([]);
@@ -66,6 +71,7 @@ function App() {
   const [autoReadingLevel, setAutoReadingLevel] = useState<string>("intermediate");
   const [autoSteps, setAutoSteps] = useState<number>(3);
   const [state, setState] = useState<GameState | null>(null);
+  const [graph, setGraph] = useState<NarrativeGraph>(EMPTY_GRAPH);
   const [statusMessage, setStatusMessage] = useState<string>("Listo para iniciar.");
   const [telemetry, setTelemetry] = useState<TelemetrySummary>(EMPTY_TELEMETRY);
   const [loading, setLoading] = useState<boolean>(false);
@@ -81,6 +87,13 @@ function App() {
       return [] as Array<[string, number]>;
     }
     return Object.entries(state.inventory);
+  }, [state]);
+
+  const memoryEntries = useMemo(() => {
+    if (!state) {
+      return [] as Array<[string, number]>;
+    }
+    return Object.entries(state.narrativeMemory).sort((a, b) => b[1] - a[1]).slice(0, 6);
   }, [state]);
 
   const progress = useMemo(() => {
@@ -107,6 +120,19 @@ function App() {
     }
   }, []);
 
+  const refreshGraph = useCallback(async (sessionId?: string) => {
+    if (!sessionId) {
+      setGraph(EMPTY_GRAPH);
+      return;
+    }
+    try {
+      const next = await loadNarrativeGraph(sessionId);
+      setGraph(next);
+    } catch {
+      setGraph(EMPTY_GRAPH);
+    }
+  }, []);
+
   useEffect(() => {
     refreshBooks().catch(() => {
       setError("No se pudo cargar el catalogo inicial.");
@@ -122,6 +148,12 @@ function App() {
       setSessionIdInput(savedSession);
     }
   }, []);
+
+  useEffect(() => {
+    refreshGraph(state?.sessionId).catch(() => {
+      setGraph(EMPTY_GRAPH);
+    });
+  }, [state?.sessionId, refreshGraph]);
 
   async function withRequest(
     task: () => Promise<void>,
@@ -150,6 +182,7 @@ function App() {
         );
       }
       await refreshTelemetry();
+      await refreshGraph(state?.sessionId ?? sessionIdInput);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Error inesperado.";
       setError(message);
@@ -315,6 +348,9 @@ function App() {
                   <p>
                     Jugador: <strong>{state.playerName}</strong>
                   </p>
+                  <p>
+                    Dificultad adaptativa: <strong>{state.adaptiveDifficulty}</strong>
+                  </p>
                 </div>
                 <div className="progress-wrap">
                   <div className="progress-meta">
@@ -343,6 +379,15 @@ function App() {
                   <p className="scene-meta">
                     Evento: <strong>{state.currentScene.eventType}</strong> · NPC: <strong>{state.currentScene.npc}</strong>
                   </p>
+                  <p className="scene-meta">
+                    Nivel cognitivo: <strong>{state.currentScene.cognitiveLevel}</strong>
+                  </p>
+                  <p className="scene-meta">{state.currentScene.continuityHint}</p>
+                  {state.currentScene.entities.length > 0 && (
+                    <p className="scene-meta">
+                      Entidades: <strong>{state.currentScene.entities.join(", ")}</strong>
+                    </p>
+                  )}
                   <p className="scene-text">{state.currentScene.text}</p>
                 </article>
               ) : (
@@ -498,6 +543,36 @@ function App() {
                         </li>
                       ))}
                   </ul>
+                </article>
+
+                <article className="mini-panel">
+                  <h4>Memoria narrativa</h4>
+                  {memoryEntries.length === 0 ? (
+                    <p>Sin entidades registradas.</p>
+                  ) : (
+                    <ul>
+                      {memoryEntries.map(([entity, weight]) => (
+                        <li key={entity}>
+                          {entity}: {weight}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </article>
+
+                <article className="mini-panel">
+                  <h4>Relaciones narrativas</h4>
+                  {graph.links.length === 0 ? (
+                    <p>Sin relaciones registradas.</p>
+                  ) : (
+                    <ul>
+                      {graph.links.slice(0, 5).map((link) => (
+                        <li key={`${link.source}-${link.target}`}>
+                          {link.source} ↔ {link.target}: {link.weight}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </article>
               </section>
             </>

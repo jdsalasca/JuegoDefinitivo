@@ -1,4 +1,4 @@
-import type { BookView, GameState, TelemetrySummary } from "./types";
+import type { BookView, GameState, NarrativeGraph, TelemetrySummary } from "./types";
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "http://localhost:8080/api";
 
@@ -60,6 +60,10 @@ export async function sendAction(
 
 export async function loadState(sessionId: string): Promise<GameState> {
   return request<GameState>(`/game/${sessionId}`);
+}
+
+export async function loadNarrativeGraph(sessionId: string): Promise<NarrativeGraph> {
+  return request<NarrativeGraph>(`/game/${sessionId}/graph`);
 }
 
 export async function autoplay(
